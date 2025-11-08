@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Tracker & Reward System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Task Tracker</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Coins:</span>
+                    <span class="stat-value" id="coinCount">0</span>
+                    <span class="coin-icon">🪙</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Free Time:</span>
+                    <span class="stat-value" id="freeTime">0</span>
+                    <span class="time-unit">min</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Task Tracker Section -->
+            <section class="task-section">
+                <h2>Tasks</h2>
+                <div class="task-input-container">
+                    <input
+                        type="text"
+                        id="taskInput"
+                        placeholder="Add a new task..."
+                        maxlength="100"
+                    >
+                    <button id="addTaskBtn" class="btn btn-primary">Add Task</button>
+                </div>
+                <div class="task-list" id="taskList">
+                    <!-- Tasks will be dynamically added here -->
+                </div>
+            </section>
+
+            <!-- Reward Shop Section -->
+            <section class="shop-section">
+                <h2>Time Shop</h2>
+                <p class="shop-description">Spend your coins to unlock free time!</p>
+                <div class="shop-items">
+                    <div class="shop-item" data-minutes="15" data-cost="5">
+                        <div class="shop-item-header">
+                            <span class="shop-item-time">15 min</span>
+                            <span class="shop-item-cost">5 🪙</span>
+                        </div>
+                        <button class="btn btn-shop">Purchase</button>
+                    </div>
+                    <div class="shop-item" data-minutes="30" data-cost="9">
+                        <div class="shop-item-header">
+                            <span class="shop-item-time">30 min</span>
+                            <span class="shop-item-cost">9 🪙</span>
+                        </div>
+                        <button class="btn btn-shop">Purchase</button>
+                    </div>
+                    <div class="shop-item" data-minutes="60" data-cost="15">
+                        <div class="shop-item-header">
+                            <span class="shop-item-time">60 min</span>
+                            <span class="shop-item-cost">15 🪙</span>
+                        </div>
+                        <button class="btn btn-shop">Purchase</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Timer Section -->
+            <section class="timer-section">
+                <h2>Free Time Timer</h2>
+                <div class="timer-display">
+                    <div class="timer-time" id="timerDisplay">00:00</div>
+                    <div class="timer-controls">
+                        <button id="startTimerBtn" class="btn btn-success" disabled>Start</button>
+                        <button id="pauseTimerBtn" class="btn btn-warning" disabled>Pause</button>
+                        <button id="resetTimerBtn" class="btn btn-danger" disabled>Reset</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
