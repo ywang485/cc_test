@@ -630,9 +630,26 @@ const AI_HYPOTHESIS_TEMPLATES = [
     "{entity} can be modeled using network theory"
 ];
 
+const AI_HYPOTHESIS_ADDITIONS = [
+    "Furthermore, this relates to temporal dynamics.",
+    "This implies a deeper underlying mechanism.",
+    "Additionally, boundary conditions play a key role.",
+    "Moreover, symmetry principles may apply.",
+    "This connects to information-theoretic constraints.",
+    "The effect is measurable under controlled conditions.",
+    "This suggests a universal scaling law.",
+    "Causality must be carefully considered here.",
+    "Environmental factors modulate this effect.",
+    "This extends to higher-order interactions."
+];
+
 function generateAIHypothesis() {
     const template = AI_HYPOTHESIS_TEMPLATES[Math.floor(Math.random() * AI_HYPOTHESIS_TEMPLATES.length)];
     return template.replace('{entity}', GameState.entity.name);
+}
+
+function generateAIHypothesisAddition() {
+    return AI_HYPOTHESIS_ADDITIONS[Math.floor(Math.random() * AI_HYPOTHESIS_ADDITIONS.length)];
 }
 
 function makeAIDecision(player, space, decisionType) {
@@ -660,10 +677,12 @@ function makeAIDecision(player, space, decisionType) {
 
             // More likely to invest if behind or can take the lead
             if (availableYears >= space.investmentCost) {
+                // 40% chance to add to the hypothesis when investing
+                const addition = Math.random() > 0.6 ? generateAIHypothesisAddition() : null;
                 if (myYears < maxInvestment && Math.random() > 0.2) {
-                    return { action: 'invest' };
+                    return { action: 'invest', addition };
                 } else if (myYears >= maxInvestment && Math.random() > 0.5) {
-                    return { action: 'invest' };
+                    return { action: 'invest', addition };
                 }
             }
             return { action: 'pass' };
@@ -795,6 +814,12 @@ function handleAIHypothesisSpace(player, space) {
         const decision = makeAIDecision(player, space, 'hypothesis_existing');
 
         if (decision.action === 'invest' && player.availableYears >= space.investmentCost) {
+            // Check if AI is adding to the hypothesis
+            if (decision.addition) {
+                space.hypothesis = space.hypothesis + ' ' + decision.addition;
+                log(`${player.name} expanded the hypothesis: "${decision.addition}"`, 'important');
+            }
+
             const existingInv = space.investments.find(i => i.playerIndex === player.index);
             if (existingInv) {
                 existingInv.years += space.investmentCost;
@@ -802,7 +827,8 @@ function handleAIHypothesisSpace(player, space) {
                 space.investments.push({ player: player.name, years: space.investmentCost, playerIndex: player.index });
             }
             player.investLife(space.investmentCost);
-            log(`${player.name} invested ${space.investmentCost} more years in "${space.hypothesis}".`);
+            log(`${player.name} invested ${space.investmentCost} more years in the hypothesis.`);
+            renderBoard();
             updatePlayerStats();
             checkGameEnd();
             if (!GameState.gameOver) {
@@ -1404,7 +1430,7 @@ function handleHypothesisSpace(player, space) {
             ]
         );
     } else if (!space.isProven) {
-        // Hypothesis exists - can invest more
+        // Hypothesis exists - can invest more or add to description
         const availableYears = player.availableYears;
         const currentInvestment = space.investments.reduce((sum, inv) => sum + inv.years, 0);
 
@@ -1420,6 +1446,10 @@ function handleHypothesisSpace(player, space) {
             <p><strong>Hypothesis:</strong> "${space.hypothesis}"</p>
             <p>Current investments:</p>
             ${investmentsHTML}
+            <div class="input-group" style="margin-top: 10px;">
+                <label>Add to hypothesis (optional):</label>
+                <input type="text" id="hypothesis-addition" placeholder="Expand or refine the hypothesis...">
+            </div>
             <p>Investment cost: ${space.investmentCost} years</p>
             <p class="info-text">Available life years: ${availableYears}</p>
             `,
@@ -1428,6 +1458,13 @@ function handleHypothesisSpace(player, space) {
                     text: 'Invest',
                     action: () => {
                         if (availableYears >= space.investmentCost) {
+                            // Check if player added to the hypothesis
+                            const addition = document.getElementById('hypothesis-addition').value.trim();
+                            if (addition) {
+                                space.hypothesis = space.hypothesis + ' ' + addition;
+                                log(`${player.name} expanded the hypothesis: "${addition}"`, 'important');
+                            }
+
                             const existingInv = space.investments.find(i => i.playerIndex === player.index);
                             if (existingInv) {
                                 existingInv.years += space.investmentCost;
@@ -1435,11 +1472,24 @@ function handleHypothesisSpace(player, space) {
                                 space.investments.push({ player: player.name, years: space.investmentCost, playerIndex: player.index });
                             }
                             player.investLife(space.investmentCost);
-                            log(`${player.name} invested ${space.investmentCost} more years in "${space.hypothesis}".`);
+                            log(`${player.name} invested ${space.investmentCost} more years in the hypothesis.`);
+                            renderBoard();
                             updatePlayerStats();
                             checkGameEnd();
                             if (!GameState.gameOver) endTurn();
                         }
+                    }
+                },
+                {
+                    text: 'Add Only',
+                    action: () => {
+                        const addition = document.getElementById('hypothesis-addition').value.trim();
+                        if (addition) {
+                            space.hypothesis = space.hypothesis + ' ' + addition;
+                            log(`${player.name} expanded the hypothesis: "${addition}"`, 'important');
+                            renderBoard();
+                        }
+                        endTurn();
                     }
                 },
                 {
