@@ -36,6 +36,249 @@ const ANIMATION_STEP_DURATION = 200; // ms per space
 const ANIMATION_BOUNCE_HEIGHT = 15; // pixels
 
 // ============================================
+// SOUND SYSTEM
+// ============================================
+let audioContext = null;
+let soundEnabled = true;
+
+function initAudio() {
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+        console.warn('Web Audio API not supported');
+        soundEnabled = false;
+    }
+}
+
+function playSound(type) {
+    if (!soundEnabled || !audioContext) return;
+
+    // Resume audio context if suspended (browser autoplay policy)
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+
+    switch (type) {
+        case 'hop':
+            playHopSound();
+            break;
+        case 'dice':
+            playDiceSound();
+            break;
+        case 'diceResult':
+            playDiceResultSound();
+            break;
+        case 'land':
+            playLandSound();
+            break;
+        case 'fame':
+            playFameSound();
+            break;
+        case 'theory':
+            playTheorySound();
+            break;
+        case 'rejuvenate':
+            playRejuvenateSound();
+            break;
+        case 'hire':
+            playHireSound();
+            break;
+        case 'scandal':
+            playScandalSound();
+            break;
+        case 'npcMove':
+            playNPCMoveSound();
+            break;
+        case 'eureka':
+            playEurekaSound();
+            break;
+        case 'death':
+            playDeathSound();
+            break;
+        case 'click':
+            playClickSound();
+            break;
+        case 'win':
+            playWinSound();
+            break;
+    }
+}
+
+function createOscillator(freq, type = 'sine', duration = 0.1) {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    osc.type = type;
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + duration);
+
+    return { osc, gain };
+}
+
+function playHopSound() {
+    const freq = 300 + Math.random() * 100;
+    createOscillator(freq, 'sine', 0.08);
+    setTimeout(() => createOscillator(freq * 1.2, 'sine', 0.06), 30);
+}
+
+function playDiceSound() {
+    // Rattling dice sound
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+            const freq = 200 + Math.random() * 300;
+            createOscillator(freq, 'square', 0.03);
+        }, i * 40);
+    }
+}
+
+function playDiceResultSound() {
+    createOscillator(440, 'sine', 0.15);
+    setTimeout(() => createOscillator(550, 'sine', 0.15), 80);
+    setTimeout(() => createOscillator(660, 'sine', 0.2), 160);
+}
+
+function playLandSound() {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(400, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.15);
+}
+
+function playFameSound() {
+    // Ascending arpeggio
+    const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+    notes.forEach((freq, i) => {
+        setTimeout(() => createOscillator(freq, 'sine', 0.15), i * 60);
+    });
+}
+
+function playTheorySound() {
+    // Triumphant fanfare
+    const notes = [523, 659, 784, 1047, 1319, 1568];
+    notes.forEach((freq, i) => {
+        setTimeout(() => {
+            createOscillator(freq, 'sine', 0.25);
+            createOscillator(freq * 0.5, 'sine', 0.25); // Add bass
+        }, i * 100);
+    });
+}
+
+function playRejuvenateSound() {
+    // Magical sparkle ascending
+    for (let i = 0; i < 8; i++) {
+        setTimeout(() => {
+            const freq = 800 + i * 100 + Math.random() * 50;
+            createOscillator(freq, 'sine', 0.1);
+        }, i * 50);
+    }
+}
+
+function playHireSound() {
+    createOscillator(400, 'triangle', 0.1);
+    setTimeout(() => createOscillator(500, 'triangle', 0.1), 100);
+    setTimeout(() => createOscillator(600, 'triangle', 0.15), 200);
+}
+
+function playScandalSound() {
+    // Descending doom sound
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(400, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.4);
+
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+
+    gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.4);
+}
+
+function playNPCMoveSound() {
+    // Ethereal/mystical sound
+    const osc1 = audioContext.createOscillator();
+    const osc2 = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    osc1.type = 'sine';
+    osc2.type = 'sine';
+    osc1.frequency.value = 220;
+    osc2.frequency.value = 223; // Slight detuning for ethereal effect
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(audioContext.destination);
+
+    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+    osc1.start(audioContext.currentTime);
+    osc2.start(audioContext.currentTime);
+    osc1.stop(audioContext.currentTime + 0.3);
+    osc2.stop(audioContext.currentTime + 0.3);
+}
+
+function playEurekaSound() {
+    // Light bulb moment!
+    setTimeout(() => createOscillator(800, 'sine', 0.1), 0);
+    setTimeout(() => createOscillator(1000, 'sine', 0.1), 50);
+    setTimeout(() => createOscillator(1200, 'sine', 0.15), 100);
+    setTimeout(() => {
+        createOscillator(1600, 'sine', 0.3);
+        createOscillator(800, 'sine', 0.3);
+    }, 150);
+}
+
+function playDeathSound() {
+    // Somber descending
+    const notes = [400, 350, 300, 250, 200];
+    notes.forEach((freq, i) => {
+        setTimeout(() => createOscillator(freq, 'sine', 0.3), i * 150);
+    });
+}
+
+function playClickSound() {
+    createOscillator(600, 'square', 0.02);
+}
+
+function playWinSound() {
+    // Victory fanfare
+    const melody = [523, 523, 523, 698, 880, 784, 698, 880, 1047];
+    const durations = [0.1, 0.1, 0.1, 0.3, 0.1, 0.1, 0.3, 0.1, 0.4];
+
+    let time = 0;
+    melody.forEach((freq, i) => {
+        setTimeout(() => {
+            createOscillator(freq, 'sine', durations[i]);
+            createOscillator(freq * 0.5, 'sine', durations[i]);
+        }, time);
+        time += durations[i] * 800;
+    });
+}
+
+// ============================================
 // CONSTANTS
 // ============================================
 const STUDENT_TYPES = {
@@ -198,9 +441,13 @@ function runAnimationFrame() {
         anim.currentPos = (anim.startPos + anim.currentStep) % GameState.board.length;
         anim.progress = 0;
 
-        // Play hop sound effect (visual feedback via bounce)
+        // Play hop sound effect
         if (anim.currentStep <= anim.totalSteps) {
-            // Continue to next step
+            if (anim.type === 'npc') {
+                playSound('npcMove');
+            } else {
+                playSound('hop');
+            }
         }
 
         if (anim.currentStep >= anim.totalSteps) {
@@ -290,6 +537,7 @@ class Player {
 
     addFame(amount) {
         this.totalFame += amount;
+        playSound('fame');
         log(`${this.name} gained ${amount} fame points!`, 'important');
     }
 
@@ -307,6 +555,7 @@ class Player {
         this.age = Math.max(STARTING_AGE, this.age - years);
         const actualYears = oldAge - this.age;
         if (actualYears > 0) {
+            playSound('rejuvenate');
             log(`${this.name} rejuvenated by ${actualYears} years! Now age ${this.age}.`);
         }
     }
@@ -348,6 +597,7 @@ class Player {
 
     die() {
         this.isAlive = false;
+        playSound('death');
         log(`${this.name} has passed away at age ${this.age}. Their legacy lives on through ${this.theoriesPublished.length} theories.`, 'important');
     }
 
@@ -355,6 +605,7 @@ class Player {
         const cost = STUDENT_TYPES[type].cost;
         if (this.spendFame(cost)) {
             this.students.push(type);
+            playSound('hire');
             log(`${this.name} hired a ${STUDENT_TYPES[type].name} for ${cost} fame.`);
             return true;
         }
@@ -831,6 +1082,7 @@ function handleGrantSpace(player) {
 }
 
 function handleScandalSpace(player) {
+    playSound('scandal');
     const fameLoss = Math.min(player.totalFame, rollDice() + 1);
     player.totalFame -= fameLoss;
     player.spentFame = Math.min(player.spentFame, player.totalFame);
@@ -873,6 +1125,7 @@ function handleCollaborationSpace(player) {
 }
 
 function handleEurekaSpace(player) {
+    playSound('eureka');
     const bonusYears = 3;
     const bonusFame = 5;
     player.rejuvenate(bonusYears);
@@ -901,6 +1154,7 @@ function handleStartSpace(player) {
 }
 
 function handleSpaceLanding(player, space) {
+    playSound('land');
     log(`${player.name} landed on "${space.name}" (${space.type})`);
 
     switch (space.type) {
@@ -949,6 +1203,7 @@ function handleNPCTurn() {
     document.getElementById('roll-dice-btn').disabled = true;
 
     log('Scientific Underdeterminism is taking its turn...', 'important');
+    playSound('dice');
 
     // Show NPC rolling modal with mystical effect
     showModal(
@@ -981,6 +1236,7 @@ function handleNPCTurn() {
     setTimeout(() => {
         const roll = rollDice();
         log(`Scientific Underdeterminism rolled a ${roll}`);
+        playSound('diceResult');
 
         document.getElementById('npc-dice-result').textContent = roll;
         document.getElementById('npc-dice-result').style.opacity = '1';
@@ -1008,6 +1264,7 @@ function handleNPCTurn() {
 }
 
 function handleNPCProveTheory(space) {
+    playSound('theory');
     space.isProven = true;
 
     // Find who invested the most
@@ -1115,6 +1372,7 @@ function playerRollDice() {
     if (!player.isAlive || GameState.isNPCTurn || GameState.gameOver || GameState.animation.active) return;
 
     document.getElementById('roll-dice-btn').disabled = true;
+    playSound('dice');
 
     const roll = rollDice();
     log(`${player.name} rolled a ${roll}`);
@@ -1141,6 +1399,7 @@ function playerRollDice() {
             clearInterval(shakeInterval);
             diceEl.style.transform = 'rotate(0deg) scale(1)';
             document.getElementById('dice-result').style.opacity = '1';
+            playSound('diceResult');
         }
     }, 80);
 
@@ -1182,6 +1441,7 @@ function checkGameEnd() {
 
 function endGame(winner, reason) {
     GameState.gameOver = true;
+    playSound('win');
 
     document.getElementById('game-screen').style.display = 'none';
     document.getElementById('gameover-screen').style.display = 'block';
@@ -1252,6 +1512,10 @@ function initSetupScreen() {
 }
 
 function startGame() {
+    // Initialize audio system
+    initAudio();
+    playSound('click');
+
     // Get entity info
     GameState.entity.type = document.getElementById('entity-type').value;
     GameState.entity.name = document.getElementById('entity-name').value || 'The Unknown';
