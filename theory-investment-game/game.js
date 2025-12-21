@@ -1466,7 +1466,7 @@ function handleHypothesisSpace(player, space) {
             <p>Current investments:</p>
             ${investmentsHTML}
             <div class="input-group" style="margin-top: 10px;">
-                <label>Add to hypothesis (optional):</label>
+                <label>Add to hypothesis (requires investment):</label>
                 <input type="text" id="hypothesis-addition" placeholder="Expand or refine the hypothesis...">
             </div>
             <p>Investment cost: ${space.investmentCost} years</p>
@@ -1497,18 +1497,6 @@ function handleHypothesisSpace(player, space) {
                             checkGameEnd();
                             if (!GameState.gameOver) endTurn();
                         }
-                    }
-                },
-                {
-                    text: 'Add Only',
-                    action: () => {
-                        const addition = document.getElementById('hypothesis-addition').value.trim();
-                        if (addition) {
-                            space.hypothesis = space.hypothesis + ' ' + addition;
-                            log(`${player.name} expanded the hypothesis: "${addition}"`, 'important');
-                            renderBoard();
-                        }
-                        endTurn();
                     }
                 },
                 {
