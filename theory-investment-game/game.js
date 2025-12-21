@@ -450,39 +450,39 @@ function runAnimationFrame() {
     // Update progress within current step
     anim.progress += deltaTime / ANIMATION_STEP_DURATION;
 
-    if (anim.progress >= 1) {
+    // Handle completing one or more steps (in case of lag/tab switch)
+    while (anim.progress >= 1 && anim.currentStep < anim.totalSteps) {
         // Complete current step
+        anim.progress -= 1;
         anim.currentStep++;
         anim.currentPos = (anim.startPos + anim.currentStep) % GameState.board.length;
-        anim.progress = 0;
 
         // Play hop sound effect
-        if (anim.currentStep <= anim.totalSteps) {
-            if (anim.type === 'npc') {
-                playSound('npcMove');
-            } else {
-                playSound('hop');
-            }
+        if (anim.type === 'npc') {
+            playSound('npcMove');
+        } else {
+            playSound('hop');
+        }
+    }
+
+    // Check if animation is complete
+    if (anim.currentStep >= anim.totalSteps) {
+        // Animation complete
+        anim.active = false;
+
+        // Update actual position
+        if (anim.type === 'player') {
+            GameState.players[anim.entityIndex].position = anim.targetPos;
+        } else if (anim.type === 'npc') {
+            GameState.npc.position = anim.targetPos;
         }
 
-        if (anim.currentStep >= anim.totalSteps) {
-            // Animation complete
-            anim.active = false;
+        renderBoard();
 
-            // Update actual position
-            if (anim.type === 'player') {
-                GameState.players[anim.entityIndex].position = anim.targetPos;
-            } else if (anim.type === 'npc') {
-                GameState.npc.position = anim.targetPos;
-            }
-
-            renderBoard();
-
-            if (anim.onComplete) {
-                anim.onComplete();
-            }
-            return;
+        if (anim.onComplete) {
+            anim.onComplete();
         }
+        return;
     }
 
     // Calculate bounce height using sine wave
