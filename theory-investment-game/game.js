@@ -811,6 +811,7 @@ function handleAIHypothesisSpace(player, space) {
 
         if (decision.action === 'invest' && player.availableYears >= space.investmentCost) {
             space.hypothesis = decision.hypothesis;
+            space.contributions.push({ text: decision.hypothesis, author: player.name, playerIndex: player.index });
             space.investments.push({ player: player.name, years: space.investmentCost, playerIndex: player.index });
             player.investLife(space.investmentCost);
             log(`${player.name} proposed: "${decision.hypothesis}" and invested ${space.investmentCost} years.`, 'important');
@@ -832,6 +833,7 @@ function handleAIHypothesisSpace(player, space) {
             // Check if AI is adding to the hypothesis
             if (decision.addition) {
                 space.hypothesis = space.hypothesis + ' ' + decision.addition;
+                space.contributions.push({ text: decision.addition, author: player.name, playerIndex: player.index });
                 log(`${player.name} expanded the hypothesis: "${decision.addition}"`, 'important');
             }
 
@@ -901,6 +903,7 @@ function parseMap(mapText) {
             name,
             investmentCost: type === SPACE_TYPES.HYPOTHESIS ? extraData : 0,
             hypothesis: null,
+            contributions: [], // Track who contributed what to the hypothesis
             investments: [],
             isProven: false
         };
@@ -1432,6 +1435,7 @@ function handleHypothesisSpace(player, space) {
                         const hypothesis = document.getElementById('hypothesis-input').value.trim();
                         if (hypothesis && availableYears >= space.investmentCost) {
                             space.hypothesis = hypothesis;
+                            space.contributions.push({ text: hypothesis, author: player.name, playerIndex: player.index });
                             space.investments.push({ player: player.name, years: space.investmentCost, playerIndex: player.index });
                             player.investLife(space.investmentCost);
                             log(`${player.name} proposed: "${hypothesis}" and invested ${space.investmentCost} years.`, 'important');
@@ -1481,6 +1485,7 @@ function handleHypothesisSpace(player, space) {
                             const addition = document.getElementById('hypothesis-addition').value.trim();
                             if (addition) {
                                 space.hypothesis = space.hypothesis + ' ' + addition;
+                                space.contributions.push({ text: addition, author: player.name, playerIndex: player.index });
                                 log(`${player.name} expanded the hypothesis: "${addition}"`, 'important');
                             }
 
@@ -2073,13 +2078,28 @@ function generateTooltipContent(spaceIndex) {
     if (space.type === SPACE_TYPES.HYPOTHESIS) {
         if (space.hypothesis) {
             const statusClass = space.isProven ? 'proven' : '';
-            html += `
-                <div class="tooltip-hypothesis ${statusClass}">
-                    <div class="tooltip-hypothesis-text">"${space.hypothesis}"</div>
-            `;
+            html += `<div class="tooltip-hypothesis ${statusClass}">`;
+
+            // Show contributions with authors
+            if (space.contributions && space.contributions.length > 0) {
+                html += `<div class="tooltip-contributions">`;
+                space.contributions.forEach((contrib, idx) => {
+                    const isFirst = idx === 0;
+                    const label = isFirst ? 'Proposed by' : 'Added by';
+                    html += `<div class="tooltip-contribution">
+                        <div class="tooltip-contribution-author">${label} ${contrib.author}:</div>
+                        <div class="tooltip-contribution-text">"${contrib.text}"</div>
+                    </div>`;
+                });
+                html += `</div>`;
+            } else {
+                // Fallback for old data without contributions array
+                html += `<div class="tooltip-hypothesis-text">"${space.hypothesis}"</div>`;
+            }
 
             if (space.investments.length > 0) {
                 html += `<div class="tooltip-investments">`;
+                html += `<div style="color: #4ecdc4; margin-bottom: 4px;">Investments:</div>`;
                 space.investments.forEach(inv => {
                     html += `<div class="tooltip-investor"><span>${inv.player}</span><span>${inv.years} yrs</span></div>`;
                 });

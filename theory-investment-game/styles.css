@@ -705,6 +705,33 @@ textarea {
     color: #4ecdc4;
 }
 
+.board-tooltip .tooltip-contributions {
+    margin-bottom: 8px;
+}
+
+.board-tooltip .tooltip-contribution {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px dotted #1a1a2e;
+}
+
+.board-tooltip .tooltip-contribution:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.board-tooltip .tooltip-contribution-author {
+    color: #4ecdc4;
+    font-size: 7px;
+    margin-bottom: 2px;
+}
+
+.board-tooltip .tooltip-contribution-text {
+    color: #fff;
+    font-style: italic;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
     width: 8px;
