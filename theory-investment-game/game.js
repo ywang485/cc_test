@@ -18,8 +18,22 @@ const GameState = {
     currentPlayerIndex: 0,
     isNPCTurn: false,
     gameOver: false,
-    turnNumber: 1
+    turnNumber: 1,
+    // Animation state
+    animation: {
+        active: false,
+        type: null, // 'player' or 'npc'
+        entityIndex: null,
+        currentPos: 0,
+        targetPos: 0,
+        progress: 0, // 0-1 for interpolation within a step
+        bounceHeight: 0
+    }
 };
+
+// Animation constants
+const ANIMATION_STEP_DURATION = 200; // ms per space
+const ANIMATION_BOUNCE_HEIGHT = 15; // pixels
 
 // ============================================
 // CONSTANTS
@@ -144,6 +158,111 @@ function getAvailableLifeYears(player) {
         years += STUDENT_TYPES[s].years;
     });
     return years;
+}
+
+// ============================================
+// ANIMATION SYSTEM
+// ============================================
+let animationFrameId = null;
+let lastAnimationTime = 0;
+
+function animateMovement(type, entityIndex, startPos, steps, onComplete) {
+    const boardLength = GameState.board.length;
+    const targetPos = (startPos + steps) % boardLength;
+
+    GameState.animation = {
+        active: true,
+        type: type,
+        entityIndex: entityIndex,
+        startPos: startPos,
+        currentPos: startPos,
+        targetPos: targetPos,
+        totalSteps: steps,
+        currentStep: 0,
+        progress: 0,
+        bounceHeight: 0,
+        onComplete: onComplete
+    };
+
+    lastAnimationTime = performance.now();
+    runAnimationFrame();
+}
+
+function runAnimationFrame() {
+    const now = performance.now();
+    const deltaTime = now - lastAnimationTime;
+    lastAnimationTime = now;
+
+    const anim = GameState.animation;
+    if (!anim.active) return;
+
+    // Update progress within current step
+    anim.progress += deltaTime / ANIMATION_STEP_DURATION;
+
+    if (anim.progress >= 1) {
+        // Complete current step
+        anim.currentStep++;
+        anim.currentPos = (anim.startPos + anim.currentStep) % GameState.board.length;
+        anim.progress = 0;
+
+        // Play hop sound effect (visual feedback via bounce)
+        if (anim.currentStep <= anim.totalSteps) {
+            // Continue to next step
+        }
+
+        if (anim.currentStep >= anim.totalSteps) {
+            // Animation complete
+            anim.active = false;
+
+            // Update actual position
+            if (anim.type === 'player') {
+                GameState.players[anim.entityIndex].position = anim.targetPos;
+            } else if (anim.type === 'npc') {
+                GameState.npc.position = anim.targetPos;
+            }
+
+            renderBoard();
+
+            if (anim.onComplete) {
+                anim.onComplete();
+            }
+            return;
+        }
+    }
+
+    // Calculate bounce height using sine wave
+    anim.bounceHeight = Math.sin(anim.progress * Math.PI) * ANIMATION_BOUNCE_HEIGHT;
+
+    renderBoard();
+    animationFrameId = requestAnimationFrame(runAnimationFrame);
+}
+
+function getAnimatedPosition(type, entityIndex, positions, spaceSize) {
+    const anim = GameState.animation;
+
+    if (!anim.active) return null;
+
+    const isAnimating = (type === 'player' && anim.type === 'player' && anim.entityIndex === entityIndex) ||
+                        (type === 'npc' && anim.type === 'npc');
+
+    if (!isAnimating) return null;
+
+    const currentSpacePos = positions[anim.currentPos];
+    const nextPos = (anim.currentPos + 1) % GameState.board.length;
+    const nextSpacePos = positions[nextPos];
+
+    if (!currentSpacePos || !nextSpacePos) return null;
+
+    // Interpolate between current and next position
+    const t = easeInOutQuad(anim.progress);
+    const x = currentSpacePos.x + (nextSpacePos.x - currentSpacePos.x) * t;
+    const y = currentSpacePos.y + (nextSpacePos.y - currentSpacePos.y) * t - anim.bounceHeight;
+
+    return { x, y };
+}
+
+function easeInOutQuad(t) {
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
 // ============================================
@@ -365,16 +484,30 @@ function renderBoard() {
     GameState.players.forEach((player, pIndex) => {
         if (!player.isAlive) return;
 
-        const pos = positions[player.position];
-        if (!pos) return;
+        // Check for animated position
+        const animPos = getAnimatedPosition('player', pIndex, positions, spaceSize);
+        const basePos = animPos || positions[player.position];
+        if (!basePos) return;
 
         const offsetX = (pIndex % 2) * 25 + 8;
         const offsetY = Math.floor(pIndex / 2) * 20 + 8;
 
+        const drawX = basePos.x + offsetX;
+        const drawY = basePos.y + offsetY;
+
+        // Draw shadow when bouncing
+        if (animPos && GameState.animation.bounceHeight > 0) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(drawX, basePos.y + offsetY + GameState.animation.bounceHeight * 0.3,
+                       8, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
         // Player token
         ctx.fillStyle = player.color;
         ctx.beginPath();
-        ctx.arc(pos.x + offsetX, pos.y + offsetY, 8, 0, Math.PI * 2);
+        ctx.arc(drawX, drawY, 8, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.strokeStyle = '#fff';
@@ -385,23 +518,48 @@ function renderBoard() {
         ctx.fillStyle = '#fff';
         ctx.font = '8px "Press Start 2P"';
         ctx.textAlign = 'center';
-        ctx.fillText((pIndex + 1).toString(), pos.x + offsetX, pos.y + offsetY + 3);
+        ctx.fillText((pIndex + 1).toString(), drawX, drawY + 3);
     });
 
     // Draw NPC
-    const npcPos = positions[GameState.npc.position];
-    if (npcPos) {
+    const animNpcPos = getAnimatedPosition('npc', null, positions, spaceSize);
+    const npcBasePos = animNpcPos || positions[GameState.npc.position];
+    if (npcBasePos) {
+        const npcX = npcBasePos.x + spaceSize/2;
+        const npcY = npcBasePos.y + spaceSize/2;
+
+        // Draw shadow when bouncing
+        if (animNpcPos && GameState.animation.bounceHeight > 0) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(npcX, positions[GameState.animation.currentPos].y + spaceSize/2 + 8 + GameState.animation.bounceHeight * 0.3,
+                       10, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
         ctx.fillStyle = '#9b59b6';
         ctx.beginPath();
-        ctx.moveTo(npcPos.x + spaceSize/2, npcPos.y + spaceSize/2 - 12);
-        ctx.lineTo(npcPos.x + spaceSize/2 + 10, npcPos.y + spaceSize/2 + 8);
-        ctx.lineTo(npcPos.x + spaceSize/2 - 10, npcPos.y + spaceSize/2 + 8);
+        ctx.moveTo(npcX, npcY - 12);
+        ctx.lineTo(npcX + 10, npcY + 8);
+        ctx.lineTo(npcX - 10, npcY + 8);
         ctx.closePath();
         ctx.fill();
 
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
         ctx.stroke();
+
+        // Add a mystical glow effect during animation
+        if (animNpcPos) {
+            ctx.strokeStyle = 'rgba(155, 89, 182, 0.5)';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(npcX, npcY - 16);
+            ctx.lineTo(npcX + 14, npcY + 10);
+            ctx.lineTo(npcX - 14, npcY + 10);
+            ctx.closePath();
+            ctx.stroke();
+        }
     }
 
     // Store positions for click handling
@@ -784,30 +942,66 @@ function handleSpaceLanding(player, space) {
 function handleNPCTurn() {
     GameState.isNPCTurn = true;
     document.getElementById('current-turn').textContent = `Turn: Scientific Underdeterminism`;
+    document.getElementById('current-turn').style.color = '#9b59b6';
     document.getElementById('roll-dice-btn').disabled = true;
 
     log('Scientific Underdeterminism is taking its turn...', 'important');
+
+    // Show NPC rolling modal with mystical effect
+    showModal(
+        'The Universe Decides...',
+        `
+        <div class="dice-container">
+            <span class="dice" id="npc-rolling-dice" style="font-size: 64px;">🎲</span>
+            <div class="dice-result" id="npc-dice-result" style="opacity: 0; color: #9b59b6;">?</div>
+        </div>
+        <p style="text-align: center; color: #9b59b6; font-size: 8px;">Scientific Underdeterminism moves...</p>
+        `,
+        []
+    );
+
+    // Animate mystical dice rolling
+    const diceEl = document.getElementById('npc-rolling-dice');
+    let shakeCount = 0;
+    const mysticalSymbols = ['🎲', '✨', '🔮', '⚛️', '🌌', '🎲'];
+    const shakeInterval = setInterval(() => {
+        diceEl.textContent = mysticalSymbols[shakeCount % mysticalSymbols.length];
+        diceEl.style.transform = `rotate(${Math.random() * 60 - 30}deg) scale(${1 + Math.random() * 0.3})`;
+        shakeCount++;
+        if (shakeCount > 12) {
+            clearInterval(shakeInterval);
+            diceEl.textContent = '🎲';
+            diceEl.style.transform = 'rotate(0deg) scale(1)';
+        }
+    }, 100);
 
     setTimeout(() => {
         const roll = rollDice();
         log(`Scientific Underdeterminism rolled a ${roll}`);
 
-        // Move NPC
-        GameState.npc.position = (GameState.npc.position + roll) % GameState.board.length;
-        renderBoard();
+        document.getElementById('npc-dice-result').textContent = roll;
+        document.getElementById('npc-dice-result').style.opacity = '1';
 
-        const space = GameState.board[GameState.npc.position];
+        setTimeout(() => {
+            hideModal();
 
-        // Check if landing on a hypothesis with investments
-        if (space.type === SPACE_TYPES.HYPOTHESIS && space.hypothesis && !space.isProven) {
-            handleNPCProveTheory(space);
-        } else {
-            setTimeout(() => {
-                log(`Scientific Underdeterminism landed on "${space.name}" - nothing happens here.`);
-                finishNPCTurn();
-            }, 500);
-        }
-    }, 1000);
+            const startPos = GameState.npc.position;
+            const targetPos = (startPos + roll) % GameState.board.length;
+
+            // Start the movement animation
+            animateMovement('npc', null, startPos, roll, () => {
+                const space = GameState.board[targetPos];
+
+                // Check if landing on a hypothesis with investments
+                if (space.type === SPACE_TYPES.HYPOTHESIS && space.hypothesis && !space.isProven) {
+                    handleNPCProveTheory(space);
+                } else {
+                    log(`Scientific Underdeterminism landed on "${space.name}" - nothing happens here.`);
+                    finishNPCTurn();
+                }
+            });
+        }, 500);
+    }, 1400);
 }
 
 function handleNPCProveTheory(space) {
@@ -915,36 +1109,51 @@ function endTurn() {
 
 function playerRollDice() {
     const player = GameState.players[GameState.currentPlayerIndex];
-    if (!player.isAlive || GameState.isNPCTurn || GameState.gameOver) return;
+    if (!player.isAlive || GameState.isNPCTurn || GameState.gameOver || GameState.animation.active) return;
 
     document.getElementById('roll-dice-btn').disabled = true;
 
     const roll = rollDice();
     log(`${player.name} rolled a ${roll}`);
 
-    // Animate dice
+    // Animate dice rolling
     showModal(
         'Rolling...',
         `
         <div class="dice-container">
-            <span class="dice">🎲</span>
-            <div class="dice-result">${roll}</div>
+            <span class="dice" id="rolling-dice">🎲</span>
+            <div class="dice-result" id="dice-result" style="opacity: 0">${roll}</div>
         </div>
         `,
         []
     );
 
+    // Animate the dice shaking
+    const diceEl = document.getElementById('rolling-dice');
+    let shakeCount = 0;
+    const shakeInterval = setInterval(() => {
+        diceEl.style.transform = `rotate(${Math.random() * 40 - 20}deg) scale(${1 + Math.random() * 0.2})`;
+        shakeCount++;
+        if (shakeCount > 8) {
+            clearInterval(shakeInterval);
+            diceEl.style.transform = 'rotate(0deg) scale(1)';
+            document.getElementById('dice-result').style.opacity = '1';
+        }
+    }, 80);
+
     setTimeout(() => {
         hideModal();
 
-        // Move player
-        player.position = (player.position + roll) % GameState.board.length;
-        renderBoard();
+        const startPos = player.position;
+        const targetPos = (startPos + roll) % GameState.board.length;
 
-        // Handle space
-        const space = GameState.board[player.position];
-        handleSpaceLanding(player, space);
-    }, 800);
+        // Start the movement animation
+        animateMovement('player', player.index, startPos, roll, () => {
+            // Animation complete - handle space
+            const space = GameState.board[targetPos];
+            handleSpaceLanding(player, space);
+        });
+    }, 900);
 }
 
 // ============================================

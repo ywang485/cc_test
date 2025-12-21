@@ -440,6 +440,7 @@ textarea {
     font-size: 48px;
     display: inline-block;
     animation: diceRoll 0.5s ease-out;
+    transition: transform 0.08s ease-out;
 }
 
 @keyframes diceRoll {
@@ -452,6 +453,25 @@ textarea {
     font-size: 14px;
     color: #ffd93d;
     margin-top: 10px;
+    transition: opacity 0.3s ease-in;
+}
+
+/* Movement trail effect */
+@keyframes tokenMove {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Glow effect for active token */
+.token-glow {
+    filter: drop-shadow(0 0 8px currentColor);
+}
+
+/* NPC mystical effect */
+@keyframes mysticalPulse {
+    0%, 100% { filter: drop-shadow(0 0 5px #9b59b6); }
+    50% { filter: drop-shadow(0 0 15px #9b59b6); }
 }
 
 /* Student Types */
