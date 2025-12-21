@@ -509,7 +509,7 @@ function easeInOutQuad(t) {
 // PLAYER CLASS
 // ============================================
 class Player {
-    constructor(name, color, index) {
+    constructor(name, color, index, isAI = false) {
         this.name = name;
         this.color = color;
         this.index = index;
@@ -520,6 +520,7 @@ class Player {
         this.students = [];
         this.theoriesPublished = [];
         this.isAlive = true;
+        this.isAI = isAI;
     }
 
     get availableFame() {
@@ -610,6 +611,233 @@ class Player {
             return true;
         }
         return false;
+    }
+}
+
+// ============================================
+// AI SYSTEM
+// ============================================
+const AI_HYPOTHESIS_TEMPLATES = [
+    "The {entity} exhibits quantum fluctuations",
+    "{entity} behavior follows a cyclical pattern",
+    "There exists a hidden variable affecting {entity}",
+    "{entity} is influenced by external forces",
+    "The structure of {entity} is self-organizing",
+    "{entity} demonstrates emergent properties",
+    "Observable {entity} is only part of a larger system",
+    "{entity} evolution follows predictable rules",
+    "The nature of {entity} is fundamentally probabilistic",
+    "{entity} can be modeled using network theory"
+];
+
+function generateAIHypothesis() {
+    const template = AI_HYPOTHESIS_TEMPLATES[Math.floor(Math.random() * AI_HYPOTHESIS_TEMPLATES.length)];
+    return template.replace('{entity}', GameState.entity.name);
+}
+
+function makeAIDecision(player, space, decisionType) {
+    // AI decision-making logic
+    const availableYears = player.availableYears;
+    const availableFame = player.availableFame;
+
+    switch (decisionType) {
+        case 'hypothesis_new':
+            // Decide whether to create a new hypothesis
+            // AI is more likely to invest if they have plenty of years
+            if (availableYears >= space.investmentCost * 2) {
+                return { action: 'invest', hypothesis: generateAIHypothesis() };
+            } else if (availableYears >= space.investmentCost && Math.random() > 0.3) {
+                return { action: 'invest', hypothesis: generateAIHypothesis() };
+            }
+            return { action: 'skip' };
+
+        case 'hypothesis_existing':
+            // Decide whether to invest in existing hypothesis
+            // Check current investment leader
+            const myInvestment = space.investments.find(i => i.playerIndex === player.index);
+            const maxInvestment = Math.max(...space.investments.map(i => i.years));
+            const myYears = myInvestment ? myInvestment.years : 0;
+
+            // More likely to invest if behind or can take the lead
+            if (availableYears >= space.investmentCost) {
+                if (myYears < maxInvestment && Math.random() > 0.2) {
+                    return { action: 'invest' };
+                } else if (myYears >= maxInvestment && Math.random() > 0.5) {
+                    return { action: 'invest' };
+                }
+            }
+            return { action: 'pass' };
+
+        case 'recruit':
+            // Decide which students to hire
+            const studentsToHire = [];
+            // Prioritize PhD students if affordable
+            if (availableFame >= STUDENT_TYPES.phd.cost && Math.random() > 0.3) {
+                studentsToHire.push('phd');
+            } else if (availableFame >= STUDENT_TYPES.master.cost && Math.random() > 0.4) {
+                studentsToHire.push('master');
+            } else if (availableFame >= STUDENT_TYPES.undergraduate.cost && Math.random() > 0.5) {
+                studentsToHire.push('undergraduate');
+            }
+            return { action: studentsToHire.length > 0 ? 'hire' : 'leave', students: studentsToHire };
+
+        default:
+            return { action: 'continue' };
+    }
+}
+
+function executeAITurn(player) {
+    log(`${player.name} (AI) is thinking...`);
+
+    // Add a delay to simulate thinking
+    setTimeout(() => {
+        playSound('dice');
+        const roll = rollDice();
+        log(`${player.name} rolled a ${roll}`);
+
+        // Show dice modal briefly
+        showModal(
+            `${player.name} (AI) Rolling...`,
+            `
+            <div class="dice-container">
+                <span class="dice">🎲</span>
+                <div class="dice-result">${roll}</div>
+            </div>
+            `,
+            []
+        );
+
+        setTimeout(() => {
+            playSound('diceResult');
+        }, 300);
+
+        setTimeout(() => {
+            hideModal();
+
+            const startPos = player.position;
+            const targetPos = (startPos + roll) % GameState.board.length;
+
+            // Start the movement animation
+            animateMovement('player', player.index, startPos, roll, () => {
+                // Animation complete - handle space for AI
+                const space = GameState.board[targetPos];
+                handleAISpaceLanding(player, space);
+            });
+        }, 800);
+    }, 500);
+}
+
+function handleAISpaceLanding(player, space) {
+    playSound('land');
+    log(`${player.name} landed on "${space.name}" (${space.type})`);
+
+    // Small delay before AI makes decision
+    setTimeout(() => {
+        switch (space.type) {
+            case SPACE_TYPES.START:
+                handleStartSpace(player);
+                break;
+            case SPACE_TYPES.HYPOTHESIS:
+                handleAIHypothesisSpace(player, space);
+                break;
+            case SPACE_TYPES.RECRUIT:
+                handleAIRecruitSpace(player);
+                break;
+            case SPACE_TYPES.CONFERENCE:
+                handleConferenceSpace(player);
+                break;
+            case SPACE_TYPES.SABBATICAL:
+                handleSabbaticalSpace(player);
+                break;
+            case SPACE_TYPES.PEER_REVIEW:
+                handlePeerReviewSpace(player);
+                break;
+            case SPACE_TYPES.GRANT:
+                handleGrantSpace(player);
+                break;
+            case SPACE_TYPES.SCANDAL:
+                handleScandalSpace(player);
+                break;
+            case SPACE_TYPES.COLLABORATION:
+                handleCollaborationSpace(player);
+                break;
+            case SPACE_TYPES.EUREKA:
+                handleEurekaSpace(player);
+                break;
+            default:
+                endTurn();
+        }
+    }, 300);
+}
+
+function handleAIHypothesisSpace(player, space) {
+    if (!space.hypothesis) {
+        // New hypothesis space
+        const decision = makeAIDecision(player, space, 'hypothesis_new');
+
+        if (decision.action === 'invest' && player.availableYears >= space.investmentCost) {
+            space.hypothesis = decision.hypothesis;
+            space.investments.push({ player: player.name, years: space.investmentCost, playerIndex: player.index });
+            player.investLife(space.investmentCost);
+            log(`${player.name} proposed: "${decision.hypothesis}" and invested ${space.investmentCost} years.`, 'important');
+            renderBoard();
+            updatePlayerStats();
+            checkGameEnd();
+            if (!GameState.gameOver) {
+                setTimeout(() => endTurn(), 500);
+            }
+        } else {
+            log(`${player.name} decided to skip this research opportunity.`);
+            setTimeout(() => endTurn(), 300);
+        }
+    } else if (!space.isProven) {
+        // Existing hypothesis
+        const decision = makeAIDecision(player, space, 'hypothesis_existing');
+
+        if (decision.action === 'invest' && player.availableYears >= space.investmentCost) {
+            const existingInv = space.investments.find(i => i.playerIndex === player.index);
+            if (existingInv) {
+                existingInv.years += space.investmentCost;
+            } else {
+                space.investments.push({ player: player.name, years: space.investmentCost, playerIndex: player.index });
+            }
+            player.investLife(space.investmentCost);
+            log(`${player.name} invested ${space.investmentCost} more years in "${space.hypothesis}".`);
+            updatePlayerStats();
+            checkGameEnd();
+            if (!GameState.gameOver) {
+                setTimeout(() => endTurn(), 500);
+            }
+        } else {
+            log(`${player.name} decided not to invest in this hypothesis.`);
+            setTimeout(() => endTurn(), 300);
+        }
+    } else {
+        // Already proven
+        log(`${player.name} observed the established theory.`);
+        setTimeout(() => endTurn(), 300);
+    }
+}
+
+function handleAIRecruitSpace(player) {
+    const decision = makeAIDecision(player, null, 'recruit');
+
+    if (decision.action === 'hire' && decision.students.length > 0) {
+        let hired = false;
+        for (const studentType of decision.students) {
+            if (player.hireStudent(studentType)) {
+                hired = true;
+                break; // Just hire one per turn
+            }
+        }
+        if (!hired) {
+            log(`${player.name} couldn't afford to hire students.`);
+        }
+        updatePlayerStats();
+        setTimeout(() => endTurn(), 500);
+    } else {
+        log(`${player.name} decided not to hire any students.`);
+        setTimeout(() => endTurn(), 300);
     }
 }
 
@@ -830,9 +1058,10 @@ function updatePlayerStats() {
         div.style.borderLeftColor = player.color;
 
         const activeIndicator = GameState.currentPlayerIndex === index && !GameState.isNPCTurn ? ' ◄' : '';
+        const aiBadge = player.isAI ? '<span class="ai-badge">AI</span>' : '';
 
         div.innerHTML = `
-            <div class="name" style="color: ${player.color}">${player.name}${activeIndicator}</div>
+            <div class="name" style="color: ${player.color}">${player.name}${aiBadge}${activeIndicator}</div>
             <div class="stats">
                 <span>Age: <span class="stat-value">${player.age}</span></span>
                 <span>Avail: <span class="stat-value">${player.availableYears}y</span></span>
@@ -1348,9 +1577,20 @@ function nextPlayer() {
 
 function updateTurnDisplay() {
     const player = GameState.players[GameState.currentPlayerIndex];
-    document.getElementById('current-turn').textContent = `Turn: ${player.name}`;
+    const aiIndicator = player.isAI ? ' (AI)' : '';
+    document.getElementById('current-turn').textContent = `Turn: ${player.name}${aiIndicator}`;
     document.getElementById('current-turn').style.color = player.color;
     updatePlayerStats();
+
+    // If current player is AI, automatically start their turn
+    if (player.isAI && player.isAlive && !GameState.gameOver && !GameState.animation.active) {
+        document.getElementById('roll-dice-btn').disabled = true;
+        document.getElementById('roll-dice-btn').textContent = 'AI Thinking...';
+        setTimeout(() => executeAITurn(player), 800);
+    } else if (!player.isAI) {
+        document.getElementById('roll-dice-btn').disabled = false;
+        document.getElementById('roll-dice-btn').textContent = 'Roll Dice';
+    }
 }
 
 function endTurn() {
@@ -1489,6 +1729,7 @@ function initSetupScreen() {
             div.innerHTML = `
                 <input type="text" class="player-name" placeholder="Player ${count + 1} Name" value="${names[count]}">
                 <input type="color" class="player-color" value="${colors[count]}">
+                <label class="ai-toggle"><input type="checkbox" class="player-ai"> AI</label>
             `;
             playerInputs.appendChild(div);
         }
@@ -1525,7 +1766,8 @@ function startGame() {
     playerInputs.forEach((input, index) => {
         const name = input.querySelector('.player-name').value || `Player ${index + 1}`;
         const color = input.querySelector('.player-color').value;
-        GameState.players.push(new Player(name, color, index));
+        const isAI = input.querySelector('.player-ai')?.checked || false;
+        GameState.players.push(new Player(name, color, index, isAI));
     });
 
     // Parse map
