@@ -1816,8 +1816,13 @@ function finishNPCTurn() {
     GameState.isNPCTurn = false;
     GameState.turnNumber++;
 
-    // Move to next alive player
-    nextPlayer();
+    // Don't call nextPlayer() here - currentPlayerIndex is already set correctly
+    // by endTurn() before NPC turn was triggered. Just skip any dead players.
+    let attempts = 0;
+    while (!GameState.players[GameState.currentPlayerIndex].isAlive && attempts < GameState.players.length) {
+        GameState.currentPlayerIndex = (GameState.currentPlayerIndex + 1) % GameState.players.length;
+        attempts++;
+    }
 
     checkGameEnd();
 
