@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theory Investment Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="screen">
+            <h1 class="pixel-title">THEORY INVESTMENT GAME</h1>
+            <p class="subtitle">Invest your life in establishing theories!</p>
+
+            <div class="setup-section">
+                <h2>Entity Configuration</h2>
+                <div class="input-group">
+                    <label for="entity-type">Entity Type:</label>
+                    <select id="entity-type">
+                        <option value="matter">Matter</option>
+                        <option value="creature">Creature</option>
+                        <option value="phenomenon">Social Phenomenon</option>
+                        <option value="place">Place</option>
+                        <option value="mechanism">Mechanism</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="entity-name">Entity Name:</label>
+                    <input type="text" id="entity-name" placeholder="e.g., Dark Matter, Bigfoot...">
+                </div>
+            </div>
+
+            <div class="setup-section">
+                <h2>Players (2-4)</h2>
+                <div id="player-inputs">
+                    <div class="player-input">
+                        <input type="text" class="player-name" placeholder="Player 1 Name" value="Dr. Hypothesis">
+                        <input type="color" class="player-color" value="#ff6b6b">
+                    </div>
+                    <div class="player-input">
+                        <input type="text" class="player-name" placeholder="Player 2 Name" value="Prof. Theory">
+                        <input type="color" class="player-color" value="#4ecdc4">
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button id="add-player-btn" class="pixel-btn">+ Add Player</button>
+                    <button id="remove-player-btn" class="pixel-btn">- Remove Player</button>
+                </div>
+            </div>
+
+            <div class="setup-section">
+                <h2>Board Configuration</h2>
+                <div class="input-group">
+                    <label for="map-select">Select Map:</label>
+                    <select id="map-select">
+                        <option value="default">Default Board</option>
+                        <option value="custom">Load Custom Map</option>
+                    </select>
+                </div>
+                <div id="custom-map-input" style="display: none;">
+                    <textarea id="map-text" placeholder="Paste map configuration here..."></textarea>
+                </div>
+            </div>
+
+            <button id="start-game-btn" class="pixel-btn large">START GAME</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen" style="display: none;">
+            <div id="game-header">
+                <div id="entity-display">
+                    <span id="entity-info"></span>
+                </div>
+                <div id="turn-display">
+                    <span id="current-turn"></span>
+                </div>
+            </div>
+
+            <div id="main-game-area">
+                <div id="board-container">
+                    <canvas id="game-board"></canvas>
+                </div>
+
+                <div id="side-panel">
+                    <div id="players-panel">
+                        <h3>Scientists</h3>
+                        <div id="player-stats"></div>
+                    </div>
+
+                    <div id="underdeterminism-panel">
+                        <h3>Scientific Underdeterminism</h3>
+                        <div id="underdeterminism-info">
+                            <span class="npc-icon">🎲</span>
+                            <span id="npc-position">Position: Start</span>
+                        </div>
+                    </div>
+
+                    <div id="theories-panel">
+                        <h3>Established Theories</h3>
+                        <div id="theories-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="action-panel">
+                <div id="game-log"></div>
+                <div id="action-buttons">
+                    <button id="roll-dice-btn" class="pixel-btn">Roll Dice</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for actions -->
+        <div id="modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2 id="modal-title"></h2>
+                <div id="modal-body"></div>
+                <div id="modal-buttons"></div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameover-screen" class="screen" style="display: none;">
+            <h1 class="pixel-title">GAME OVER</h1>
+            <div id="winner-display"></div>
+            <div id="final-stats"></div>
+            <button id="play-again-btn" class="pixel-btn large">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
