@@ -618,16 +618,91 @@ textarea {
     color: #ffd93d;
 }
 
-/* Space Info Tooltip */
-.space-tooltip {
-    position: absolute;
+/* Board Tooltip */
+.board-tooltip {
+    position: fixed;
     background: #16213e;
     border: 3px solid #4ecdc4;
-    padding: 10px;
+    padding: 12px;
     font-size: 8px;
-    z-index: 100;
-    max-width: 200px;
+    z-index: 1000;
+    max-width: 280px;
     pointer-events: none;
+    display: none;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+    line-height: 1.6;
+}
+
+.board-tooltip.visible {
+    display: block;
+}
+
+.board-tooltip .tooltip-title {
+    font-size: 10px;
+    color: #ffd93d;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px dashed #0f3460;
+}
+
+.board-tooltip .tooltip-type {
+    color: #4ecdc4;
+    margin-bottom: 6px;
+}
+
+.board-tooltip .tooltip-desc {
+    color: #aaa;
+    margin-bottom: 8px;
+}
+
+.board-tooltip .tooltip-hypothesis {
+    background: #0f3460;
+    padding: 8px;
+    margin: 8px 0;
+    border-left: 3px solid #ffd93d;
+}
+
+.board-tooltip .tooltip-hypothesis.proven {
+    border-left-color: #4ecdc4;
+}
+
+.board-tooltip .tooltip-hypothesis-text {
+    color: #fff;
+    margin-bottom: 6px;
+    font-style: italic;
+}
+
+.board-tooltip .tooltip-investments {
+    margin-top: 8px;
+}
+
+.board-tooltip .tooltip-investor {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    color: #aaa;
+}
+
+.board-tooltip .tooltip-investor span:last-child {
+    color: #ffd93d;
+}
+
+.board-tooltip .tooltip-status {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dotted #0f3460;
+}
+
+.board-tooltip .tooltip-status.empty {
+    color: #666;
+}
+
+.board-tooltip .tooltip-status.active {
+    color: #ffd93d;
+}
+
+.board-tooltip .tooltip-status.proven {
+    color: #4ecdc4;
 }
 
 /* Scrollbar styling */

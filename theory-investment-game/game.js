@@ -14,6 +14,8 @@ const GameState = {
         position: 0
     },
     board: [],
+    boardPositions: [], // Stored positions for hover detection
+    boardSpaceSize: 60,
     theories: [],
     currentPlayerIndex: 0,
     isNPCTurn: false,
@@ -311,6 +313,19 @@ const SPACE_COLORS = {
     [SPACE_TYPES.SCANDAL]: '#c0392b',
     [SPACE_TYPES.COLLABORATION]: '#1abc9c',
     [SPACE_TYPES.EUREKA]: '#f39c12'
+};
+
+const SPACE_DESCRIPTIONS = {
+    [SPACE_TYPES.START]: 'Begin your academic journey! Passing this space rejuvenates you by 2 years.',
+    [SPACE_TYPES.HYPOTHESIS]: 'A research opportunity! Create a new hypothesis or invest in an existing one. If Scientific Underdeterminism lands here, the hypothesis becomes a proven theory.',
+    [SPACE_TYPES.RECRUIT]: 'Graduate recruitment center. Spend fame points to hire students who extend your available research years.',
+    [SPACE_TYPES.CONFERENCE]: 'Present your work and gain recognition! Earn 3 fame points for attending.',
+    [SPACE_TYPES.SABBATICAL]: 'Take a well-deserved break. Rejuvenate by 3 years of life.',
+    [SPACE_TYPES.PEER_REVIEW]: 'Your work is under scrutiny. Lose 2 years to the review process, but if you have students, one will help (and graduate).',
+    [SPACE_TYPES.GRANT]: 'Research funding! Receive a grant that rejuvenates you by 5 years.',
+    [SPACE_TYPES.SCANDAL]: 'Academic misconduct allegations! Lose 5 fame points as your reputation suffers.',
+    [SPACE_TYPES.COLLABORATION]: 'Team up with a colleague! Gain 2 fame and rejuvenate by 1 year through shared research.',
+    [SPACE_TYPES.EUREKA]: 'A flash of brilliance! Make a breakthrough discovery and gain 5 fame points.'
 };
 
 const MAX_AGE = 90;
@@ -1222,6 +1237,10 @@ function renderBoard() {
         positions.push({ x, y });
     }
 
+    // Store positions for hover detection
+    GameState.boardPositions = positions;
+    GameState.boardSpaceSize = spaceSize;
+
     // Draw spaces
     board.forEach((space, i) => {
         const pos = positions[i];
@@ -2026,7 +2045,150 @@ function endGame(winner, reason) {
 }
 
 // ============================================
-// SETUP & INITIALIZATION
+// BOARD TOOLTIP SYSTEM
+// ============================================
+function getSpaceAtPosition(mouseX, mouseY) {
+    const canvas = document.getElementById('game-board');
+    const rect = canvas.getBoundingClientRect();
+
+    // Convert mouse position to canvas coordinates
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const canvasX = (mouseX - rect.left) * scaleX;
+    const canvasY = (mouseY - rect.top) * scaleY;
+
+    // Check each space
+    for (let i = 0; i < GameState.boardPositions.length; i++) {
+        const pos = GameState.boardPositions[i];
+        if (canvasX >= pos.x && canvasX < pos.x + GameState.boardSpaceSize - 2 &&
+            canvasY >= pos.y && canvasY < pos.y + GameState.boardSpaceSize - 2) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function generateTooltipContent(spaceIndex) {
+    const space = GameState.board[spaceIndex];
+    if (!space) return '';
+
+    const typeName = space.type.charAt(0).toUpperCase() + space.type.slice(1).replace('_', ' ');
+    const description = SPACE_DESCRIPTIONS[space.type] || 'Unknown space type.';
+
+    let html = `
+        <div class="tooltip-title">${space.name}</div>
+        <div class="tooltip-type">${typeName}</div>
+        <div class="tooltip-desc">${description}</div>
+    `;
+
+    // Add hypothesis-specific info
+    if (space.type === SPACE_TYPES.HYPOTHESIS) {
+        if (space.hypothesis) {
+            const statusClass = space.isProven ? 'proven' : '';
+            html += `
+                <div class="tooltip-hypothesis ${statusClass}">
+                    <div class="tooltip-hypothesis-text">"${space.hypothesis}"</div>
+            `;
+
+            if (space.investments.length > 0) {
+                html += `<div class="tooltip-investments">`;
+                space.investments.forEach(inv => {
+                    html += `<div class="tooltip-investor"><span>${inv.player}</span><span>${inv.years} yrs</span></div>`;
+                });
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            if (space.isProven) {
+                html += `<div class="tooltip-status proven">ESTABLISHED THEORY</div>`;
+            } else {
+                html += `<div class="tooltip-status active">Active Research (Cost: ${space.investmentCost} yrs)</div>`;
+            }
+        } else {
+            html += `<div class="tooltip-status empty">Unmarked (Cost: ${space.investmentCost} yrs to start)</div>`;
+        }
+    }
+
+    // Show who's on this space
+    const playersHere = GameState.players.filter(p => p.position === spaceIndex && p.isAlive);
+    const npcHere = GameState.npc.position === spaceIndex;
+
+    if (playersHere.length > 0 || npcHere) {
+        html += `<div class="tooltip-status" style="margin-top: 8px; color: #4ecdc4;">`;
+        if (playersHere.length > 0) {
+            html += `Players here: ${playersHere.map(p => p.name).join(', ')}`;
+        }
+        if (npcHere) {
+            html += playersHere.length > 0 ? '<br>' : '';
+            html += `Scientific Underdeterminism is here`;
+        }
+        html += `</div>`;
+    }
+
+    return html;
+}
+
+function showBoardTooltip(mouseX, mouseY, content) {
+    const tooltip = document.getElementById('board-tooltip');
+    tooltip.innerHTML = content;
+    tooltip.classList.add('visible');
+
+    // Position tooltip near mouse but avoid going off screen
+    const tooltipRect = tooltip.getBoundingClientRect();
+    let left = mouseX + 15;
+    let top = mouseY + 15;
+
+    // Adjust if tooltip would go off right edge
+    if (left + tooltipRect.width > window.innerWidth - 10) {
+        left = mouseX - tooltipRect.width - 15;
+    }
+
+    // Adjust if tooltip would go off bottom edge
+    if (top + tooltipRect.height > window.innerHeight - 10) {
+        top = mouseY - tooltipRect.height - 15;
+    }
+
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+}
+
+function hideBoardTooltip() {
+    const tooltip = document.getElementById('board-tooltip');
+    tooltip.classList.remove('visible');
+}
+
+function initBoardTooltip() {
+    const canvas = document.getElementById('game-board');
+    let lastHoveredSpace = -1;
+
+    canvas.addEventListener('mousemove', (e) => {
+        const spaceIndex = getSpaceAtPosition(e.clientX, e.clientY);
+
+        if (spaceIndex >= 0 && spaceIndex !== lastHoveredSpace) {
+            const content = generateTooltipContent(spaceIndex);
+            showBoardTooltip(e.clientX, e.clientY, content);
+            lastHoveredSpace = spaceIndex;
+        } else if (spaceIndex >= 0) {
+            // Update position while hovering same space
+            const tooltip = document.getElementById('board-tooltip');
+            if (tooltip.classList.contains('visible')) {
+                showBoardTooltip(e.clientX, e.clientY, tooltip.innerHTML);
+            }
+        } else {
+            hideBoardTooltip();
+            lastHoveredSpace = -1;
+        }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        hideBoardTooltip();
+        lastHoveredSpace = -1;
+    });
+}
+
+// ============================================
+// SETUP AND INITIALIZATION
 // ============================================
 function initSetupScreen() {
     const addBtn = document.getElementById('add-player-btn');
@@ -2111,6 +2273,9 @@ function startGame() {
     updatePlayerStats();
     updateTheoriesList();
     updateTurnDisplay();
+
+    // Initialize board tooltip
+    initBoardTooltip();
 
     log(`The research on "${GameState.entity.name}" begins!`, 'important');
     log(`${GameState.players.length} researchers compete for scientific glory.`);
