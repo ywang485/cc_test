@@ -866,6 +866,286 @@ function parseMap(mapText) {
     });
 }
 
+// ============================================
+// PIXEL ART ICONS
+// ============================================
+function drawSpaceIcon(ctx, type, x, y, size, isProven = false) {
+    const centerX = x + size / 2;
+    const centerY = y + size / 2;
+    const scale = size / 60; // Base size is 60px
+
+    ctx.save();
+
+    switch (type) {
+        case SPACE_TYPES.START:
+            // Arrow pointing right (GO!)
+            drawStartIcon(ctx, centerX, centerY, scale);
+            break;
+        case SPACE_TYPES.HYPOTHESIS:
+            if (isProven) {
+                // Star/trophy for proven theory
+                drawProvenIcon(ctx, centerX, centerY, scale);
+            } else {
+                // Question mark/beaker for hypothesis
+                drawHypothesisIcon(ctx, centerX, centerY, scale);
+            }
+            break;
+        case SPACE_TYPES.RECRUIT:
+            // Graduate person
+            drawRecruitIcon(ctx, centerX, centerY, scale);
+            break;
+        case SPACE_TYPES.CONFERENCE:
+            // Podium/microphone
+            drawConferenceIcon(ctx, centerX, centerY, scale);
+            break;
+        case SPACE_TYPES.SABBATICAL:
+            // Palm tree
+            drawSabbaticalIcon(ctx, centerX, centerY, scale);
+            break;
+        case SPACE_TYPES.PEER_REVIEW:
+            // Magnifying glass
+            drawPeerReviewIcon(ctx, centerX, centerY, scale);
+            break;
+        case SPACE_TYPES.GRANT:
+            // Money bag
+            drawGrantIcon(ctx, centerX, centerY, scale);
+            break;
+        case SPACE_TYPES.SCANDAL:
+            // Warning sign
+            drawScandalIcon(ctx, centerX, centerY, scale);
+            break;
+        case SPACE_TYPES.COLLABORATION:
+            // Two people/handshake
+            drawCollaborationIcon(ctx, centerX, centerY, scale);
+            break;
+        case SPACE_TYPES.EUREKA:
+            // Lightbulb
+            drawEurekaIcon(ctx, centerX, centerY, scale);
+            break;
+    }
+
+    ctx.restore();
+}
+
+function drawStartIcon(ctx, cx, cy, scale) {
+    // Big arrow pointing right
+    const p = 3 * scale; // pixel size
+    ctx.fillStyle = '#000';
+
+    // Arrow body
+    for (let i = -3; i <= 2; i++) {
+        ctx.fillRect(cx + i * p - p, cy - p, p, p * 2);
+    }
+    // Arrow head
+    ctx.fillRect(cx + 2 * p, cy - 2 * p, p, p * 4);
+    ctx.fillRect(cx + 3 * p, cy - p, p, p * 2);
+}
+
+function drawHypothesisIcon(ctx, cx, cy, scale) {
+    // Beaker/flask with bubbles
+    const p = 2 * scale;
+    ctx.fillStyle = '#000';
+
+    // Beaker neck
+    ctx.fillRect(cx - p, cy - 8 * p, p * 2, p * 2);
+    // Beaker body (wider)
+    ctx.fillRect(cx - 3 * p, cy - 6 * p, p * 6, p * 8);
+    // Liquid inside (lighter)
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(cx - 2 * p, cy - 2 * p, p * 4, p * 4);
+    // Bubbles
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(cx - p, cy - p, p, p);
+    ctx.fillRect(cx + p, cy - 3 * p, p, p);
+}
+
+function drawProvenIcon(ctx, cx, cy, scale) {
+    // Star shape
+    const p = 2 * scale;
+    ctx.fillStyle = '#000';
+
+    // Star made of pixels
+    // Top point
+    ctx.fillRect(cx - p/2, cy - 8 * p, p, p * 2);
+    // Upper middle
+    ctx.fillRect(cx - p * 1.5, cy - 6 * p, p * 3, p * 2);
+    // Wide middle bar
+    ctx.fillRect(cx - 5 * p, cy - 4 * p, p * 10, p * 2);
+    // Lower middle
+    ctx.fillRect(cx - 3 * p, cy - 2 * p, p * 6, p * 2);
+    // Bottom points
+    ctx.fillRect(cx - 4 * p, cy, p * 2, p * 3);
+    ctx.fillRect(cx + 2 * p, cy, p * 2, p * 3);
+}
+
+function drawRecruitIcon(ctx, cx, cy, scale) {
+    // Person with graduation cap
+    const p = 2 * scale;
+    ctx.fillStyle = '#000';
+
+    // Graduation cap top
+    ctx.fillRect(cx - 4 * p, cy - 8 * p, p * 8, p);
+    ctx.fillRect(cx - 2 * p, cy - 9 * p, p * 4, p);
+    // Head
+    ctx.fillRect(cx - 2 * p, cy - 7 * p, p * 4, p * 4);
+    // Body
+    ctx.fillRect(cx - 3 * p, cy - 2 * p, p * 6, p * 5);
+    // Arms
+    ctx.fillRect(cx - 5 * p, cy - 1 * p, p * 2, p * 3);
+    ctx.fillRect(cx + 3 * p, cy - 1 * p, p * 2, p * 3);
+}
+
+function drawConferenceIcon(ctx, cx, cy, scale) {
+    // Podium with microphone
+    const p = 2 * scale;
+    ctx.fillStyle = '#000';
+
+    // Microphone head
+    ctx.fillRect(cx - p, cy - 9 * p, p * 2, p * 2);
+    // Microphone stand
+    ctx.fillRect(cx - p/2, cy - 7 * p, p, p * 4);
+    // Podium top
+    ctx.fillRect(cx - 4 * p, cy - 3 * p, p * 8, p * 2);
+    // Podium body
+    ctx.fillRect(cx - 3 * p, cy - p, p * 6, p * 4);
+    // Podium front detail
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillRect(cx - 2 * p, cy, p * 4, p * 2);
+}
+
+function drawSabbaticalIcon(ctx, cx, cy, scale) {
+    // Palm tree
+    const p = 2 * scale;
+    ctx.fillStyle = '#000';
+
+    // Trunk
+    ctx.fillRect(cx - p, cy - 2 * p, p * 2, p * 6);
+    // Left fronds
+    ctx.fillRect(cx - 5 * p, cy - 6 * p, p * 4, p);
+    ctx.fillRect(cx - 6 * p, cy - 7 * p, p * 3, p);
+    ctx.fillRect(cx - 4 * p, cy - 5 * p, p * 3, p);
+    // Right fronds
+    ctx.fillRect(cx + p, cy - 6 * p, p * 4, p);
+    ctx.fillRect(cx + 3 * p, cy - 7 * p, p * 3, p);
+    ctx.fillRect(cx + p, cy - 5 * p, p * 3, p);
+    // Top fronds
+    ctx.fillRect(cx - p, cy - 8 * p, p * 2, p * 2);
+    // Coconuts
+    ctx.fillStyle = '#5c4033';
+    ctx.fillRect(cx - 2 * p, cy - 4 * p, p, p);
+    ctx.fillRect(cx + p, cy - 4 * p, p, p);
+}
+
+function drawPeerReviewIcon(ctx, cx, cy, scale) {
+    // Magnifying glass
+    const p = 2 * scale;
+    ctx.fillStyle = '#000';
+
+    // Glass circle (outer)
+    ctx.fillRect(cx - 3 * p, cy - 8 * p, p * 6, p);
+    ctx.fillRect(cx - 4 * p, cy - 7 * p, p, p * 2);
+    ctx.fillRect(cx + 3 * p, cy - 7 * p, p, p * 2);
+    ctx.fillRect(cx - 4 * p, cy - 4 * p, p, p * 2);
+    ctx.fillRect(cx + 3 * p, cy - 4 * p, p, p * 2);
+    ctx.fillRect(cx - 3 * p, cy - 2 * p, p * 6, p);
+    // Handle
+    ctx.fillRect(cx + 2 * p, cy - p, p * 2, p);
+    ctx.fillRect(cx + 3 * p, cy, p * 2, p * 2);
+    ctx.fillRect(cx + 4 * p, cy + 2 * p, p * 2, p * 2);
+    // Glass shine
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillRect(cx - 2 * p, cy - 6 * p, p * 2, p * 2);
+}
+
+function drawGrantIcon(ctx, cx, cy, scale) {
+    // Money bag with $ sign
+    const p = 2 * scale;
+    ctx.fillStyle = '#000';
+
+    // Bag top (tied)
+    ctx.fillRect(cx - p, cy - 9 * p, p * 2, p);
+    ctx.fillRect(cx - 2 * p, cy - 8 * p, p * 4, p);
+    // Bag body
+    ctx.fillRect(cx - 3 * p, cy - 7 * p, p * 6, p);
+    ctx.fillRect(cx - 4 * p, cy - 6 * p, p * 8, p * 6);
+    ctx.fillRect(cx - 3 * p, cy, p * 6, p * 2);
+    // $ sign
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(cx - p/2, cy - 5 * p, p, p * 5);
+    ctx.fillRect(cx - 2 * p, cy - 4 * p, p * 4, p);
+    ctx.fillRect(cx - 2 * p, cy - 2 * p, p * 4, p);
+}
+
+function drawScandalIcon(ctx, cx, cy, scale) {
+    // Warning triangle with !
+    const p = 2 * scale;
+    ctx.fillStyle = '#000';
+
+    // Triangle outline
+    ctx.fillRect(cx - p/2, cy - 9 * p, p, p);
+    ctx.fillRect(cx - p, cy - 8 * p, p * 2, p);
+    ctx.fillRect(cx - 2 * p, cy - 7 * p, p * 4, p);
+    ctx.fillRect(cx - 2 * p, cy - 6 * p, p, p);
+    ctx.fillRect(cx + p, cy - 6 * p, p, p);
+    ctx.fillRect(cx - 3 * p, cy - 5 * p, p, p);
+    ctx.fillRect(cx + 2 * p, cy - 5 * p, p, p);
+    ctx.fillRect(cx - 3 * p, cy - 4 * p, p, p);
+    ctx.fillRect(cx + 2 * p, cy - 4 * p, p, p);
+    ctx.fillRect(cx - 4 * p, cy - 3 * p, p, p);
+    ctx.fillRect(cx + 3 * p, cy - 3 * p, p, p);
+    ctx.fillRect(cx - 4 * p, cy - 2 * p, p, p);
+    ctx.fillRect(cx + 3 * p, cy - 2 * p, p, p);
+    ctx.fillRect(cx - 5 * p, cy - p, p * 10, p * 2);
+    // Exclamation mark
+    ctx.fillRect(cx - p/2, cy - 6 * p, p, p * 3);
+    ctx.fillRect(cx - p/2, cy - 2 * p, p, p);
+}
+
+function drawCollaborationIcon(ctx, cx, cy, scale) {
+    // Two people shaking hands
+    const p = 2 * scale;
+    ctx.fillStyle = '#000';
+
+    // Left person head
+    ctx.fillRect(cx - 5 * p, cy - 7 * p, p * 2, p * 2);
+    // Left person body
+    ctx.fillRect(cx - 5 * p, cy - 5 * p, p * 2, p * 4);
+    // Right person head
+    ctx.fillRect(cx + 3 * p, cy - 7 * p, p * 2, p * 2);
+    // Right person body
+    ctx.fillRect(cx + 3 * p, cy - 5 * p, p * 2, p * 4);
+    // Handshake in middle
+    ctx.fillRect(cx - 3 * p, cy - 3 * p, p * 2, p);
+    ctx.fillRect(cx - p, cy - 2 * p, p * 2, p * 2);
+    ctx.fillRect(cx + p, cy - 3 * p, p * 2, p);
+    // Arms connecting
+    ctx.fillRect(cx - 4 * p, cy - 3 * p, p, p);
+    ctx.fillRect(cx + 3 * p, cy - 3 * p, p, p);
+}
+
+function drawEurekaIcon(ctx, cx, cy, scale) {
+    // Lightbulb with rays
+    const p = 2 * scale;
+    ctx.fillStyle = '#000';
+
+    // Bulb top
+    ctx.fillRect(cx - 2 * p, cy - 8 * p, p * 4, p);
+    ctx.fillRect(cx - 3 * p, cy - 7 * p, p * 6, p * 2);
+    ctx.fillRect(cx - 3 * p, cy - 5 * p, p * 6, p * 2);
+    ctx.fillRect(cx - 2 * p, cy - 3 * p, p * 4, p);
+    // Bulb base
+    ctx.fillRect(cx - p, cy - 2 * p, p * 2, p);
+    ctx.fillRect(cx - 2 * p, cy - p, p * 4, p);
+    ctx.fillRect(cx - p, cy, p * 2, p * 2);
+    // Rays
+    ctx.fillRect(cx - 6 * p, cy - 6 * p, p * 2, p);
+    ctx.fillRect(cx + 4 * p, cy - 6 * p, p * 2, p);
+    ctx.fillRect(cx - p/2, cy - 10 * p, p, p);
+    // Inner glow
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(cx - p, cy - 6 * p, p * 2, p * 2);
+}
+
 function renderBoard() {
     const canvas = document.getElementById('game-board');
     const ctx = canvas.getContext('2d');
@@ -934,25 +1214,8 @@ function renderBoard() {
             ctx.strokeRect(pos.x + 2, pos.y + 2, spaceSize - 6, spaceSize - 6);
         }
 
-        // Draw space type icon
-        ctx.fillStyle = '#000';
-        ctx.font = '10px "Press Start 2P"';
-        ctx.textAlign = 'center';
-
-        const icons = {
-            [SPACE_TYPES.START]: 'GO',
-            [SPACE_TYPES.HYPOTHESIS]: space.isProven ? 'T' : 'H',
-            [SPACE_TYPES.RECRUIT]: 'R',
-            [SPACE_TYPES.CONFERENCE]: 'C',
-            [SPACE_TYPES.SABBATICAL]: 'S',
-            [SPACE_TYPES.PEER_REVIEW]: 'PR',
-            [SPACE_TYPES.GRANT]: 'G',
-            [SPACE_TYPES.SCANDAL]: '!',
-            [SPACE_TYPES.COLLABORATION]: 'CO',
-            [SPACE_TYPES.EUREKA]: 'E!'
-        };
-
-        ctx.fillText(icons[space.type] || '?', pos.x + spaceSize/2 - 1, pos.y + spaceSize/2 + 4);
+        // Draw space type icon using pixel art
+        drawSpaceIcon(ctx, space.type, pos.x, pos.y, spaceSize - 2, space.isProven);
 
         // Draw investment cost for hypothesis
         if (space.type === SPACE_TYPES.HYPOTHESIS && space.investmentCost > 0) {
