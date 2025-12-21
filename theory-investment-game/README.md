@@ -16,8 +16,10 @@ A Monopoly-style board game where players invest their life in establishing scie
 Earn the most fame points by successfully investing in hypotheses that become established theories.
 
 ### Players
-- Each player starts at age 30 with 5 years of available life
-- Players die at age 90 (life years used for investments age you)
+- Each player starts at age 30 and dies at age 90
+- Available years = (90 - current age) + student years
+- Investing in hypotheses ages you (unless using student years)
+- Some spaces rejuvenate you (decrease your age)
 - Track both total fame and available fame (total - spent on students)
 
 ### The Scientific Underdeterminism NPC
@@ -31,12 +33,12 @@ This special character takes a turn after all players have moved. When it lands 
 | **HYPOTHESIS** | Create or invest in hypotheses about the entity |
 | **RECRUIT** | Hire students using fame (they provide research years) |
 | **CONFERENCE** | Present work and gain fame |
-| **SABBATICAL** | Gain 2 extra years of life |
+| **SABBATICAL** | Rejuvenate by 2 years (decrease age) |
 | **PEER_REVIEW** | If you have published theories, gain bonus fame |
-| **GRANT** | Receive funded research time and fame |
+| **GRANT** | Rejuvenate and gain fame |
 | **SCANDAL** | Lose fame due to controversy |
 | **COLLABORATION** | Both you and a random player gain fame |
-| **EUREKA** | Breakthrough! Gain years and fame |
+| **EUREKA** | Breakthrough! Rejuvenate and gain fame |
 
 ### Students
 Hire students at RECRUIT spaces to provide research years:

@@ -72,7 +72,6 @@ const SPACE_COLORS = {
 
 const MAX_AGE = 90;
 const STARTING_AGE = 30;
-const STARTING_LIFE_YEARS = 5;
 
 // ============================================
 // DEFAULT MAP CONFIGURATION
@@ -152,13 +151,7 @@ function hideModal() {
     document.getElementById('modal').style.display = 'none';
 }
 
-function getAvailableLifeYears(player) {
-    let years = player.lifeYears;
-    player.students.forEach(s => {
-        years += STUDENT_TYPES[s].years;
-    });
-    return years;
-}
+// getAvailableLifeYears removed - use player.availableYears instead
 
 // ============================================
 // ANIMATION SYSTEM
@@ -275,7 +268,6 @@ class Player {
         this.index = index;
         this.position = 0;
         this.age = STARTING_AGE;
-        this.lifeYears = STARTING_LIFE_YEARS;
         this.totalFame = 0;
         this.spentFame = 0;
         this.students = [];
@@ -285,6 +277,15 @@ class Player {
 
     get availableFame() {
         return this.totalFame - this.spentFame;
+    }
+
+    get availableYears() {
+        // Years until death plus student years
+        let years = MAX_AGE - this.age;
+        this.students.forEach(s => {
+            years += STUDENT_TYPES[s].years;
+        });
+        return years;
     }
 
     addFame(amount) {
@@ -298,6 +299,16 @@ class Player {
             return true;
         }
         return false;
+    }
+
+    rejuvenate(years) {
+        // Decrease age (but not below starting age)
+        const oldAge = this.age;
+        this.age = Math.max(STARTING_AGE, this.age - years);
+        const actualYears = oldAge - this.age;
+        if (actualYears > 0) {
+            log(`${this.name} rejuvenated by ${actualYears} years! Now age ${this.age}.`);
+        }
     }
 
     investLife(years, useStudents = true) {
@@ -322,17 +333,9 @@ class Player {
             }
         }
 
-        // Use own life years for remaining
+        // Remaining years come from own life (increases age)
         if (yearsToInvest > 0) {
-            if (this.lifeYears >= yearsToInvest) {
-                this.lifeYears -= yearsToInvest;
-                this.age += yearsToInvest;
-            } else {
-                const remaining = yearsToInvest - this.lifeYears;
-                this.age += this.lifeYears;
-                this.lifeYears = 0;
-                this.age += remaining; // This might cause death
-            }
+            this.age += yearsToInvest;
         }
 
         // Check for death
@@ -340,7 +343,7 @@ class Player {
             this.die();
         }
 
-        return { studentsUsed, personalYears: years - studentsUsed.reduce((a, s) => a + STUDENT_TYPES[s].years, 0) };
+        return { studentsUsed, personalYears: yearsToInvest };
     }
 
     die() {
@@ -580,8 +583,8 @@ function updatePlayerStats() {
         div.innerHTML = `
             <div class="name" style="color: ${player.color}">${player.name}${activeIndicator}</div>
             <div class="stats">
-                <span>Age: <span class="stat-value">${player.age}/${MAX_AGE}</span></span>
-                <span>Life: <span class="stat-value">${player.lifeYears}y</span></span>
+                <span>Age: <span class="stat-value">${player.age}</span></span>
+                <span>Avail: <span class="stat-value">${player.availableYears}y</span></span>
                 <span>Fame: <span class="stat-value">${player.availableFame}/${player.totalFame}</span></span>
                 <span>Students: <span class="stat-value">${player.students.length}</span></span>
             </div>
@@ -620,7 +623,7 @@ function updateTheoriesList() {
 function handleHypothesisSpace(player, space) {
     if (!space.hypothesis) {
         // First player to land here - can create hypothesis
-        const availableYears = getAvailableLifeYears(player);
+        const availableYears = player.availableYears;
 
         showModal(
             'New Research Opportunity!',
@@ -659,7 +662,7 @@ function handleHypothesisSpace(player, space) {
         );
     } else if (!space.isProven) {
         // Hypothesis exists - can invest more
-        const availableYears = getAvailableLifeYears(player);
+        const availableYears = player.availableYears;
         const currentInvestment = space.investments.reduce((sum, inv) => sum + inv.years, 0);
 
         let investmentsHTML = '<div class="investment-display">';
@@ -772,13 +775,13 @@ function handleConferenceSpace(player) {
 }
 
 function handleSabbaticalSpace(player) {
-    player.lifeYears += 2;
+    player.rejuvenate(2);
 
     showModal(
         'Sabbatical Leave',
         `
         <p>You took a well-deserved sabbatical!</p>
-        <p>You gained 2 extra years of productive life.</p>
+        <p>You feel 2 years younger and more energized!</p>
         <p class="info-text">Sometimes stepping back helps you move forward.</p>
         `,
         [{ text: 'Refreshed!', action: () => { updatePlayerStats(); endTurn(); } }]
@@ -809,7 +812,7 @@ function handlePeerReviewSpace(player) {
 
 function handleGrantSpace(player) {
     const grantSize = rollDice() + rollDice();
-    player.lifeYears += grantSize;
+    player.rejuvenate(grantSize);
     player.addFame(2);
 
     showModal(
@@ -820,7 +823,7 @@ function handleGrantSpace(player) {
             <div class="dice-result">Grant Approved!</div>
         </div>
         <p>You received a major research grant!</p>
-        <p>+${grantSize} years of funded research time</p>
+        <p>The reduced stress makes you feel ${grantSize} years younger!</p>
         <p>+2 fame for securing funding</p>
         `,
         [{ text: 'Excellent!', action: () => { updatePlayerStats(); endTurn(); } }]
@@ -872,7 +875,7 @@ function handleCollaborationSpace(player) {
 function handleEurekaSpace(player) {
     const bonusYears = 3;
     const bonusFame = 5;
-    player.lifeYears += bonusYears;
+    player.rejuvenate(bonusYears);
     player.addFame(bonusFame);
 
     showModal(
@@ -880,7 +883,7 @@ function handleEurekaSpace(player) {
         `
         <p style="color: #ffd93d; font-size: 12px;">A moment of brilliance!</p>
         <p>You had a breakthrough insight about ${GameState.entity.name}!</p>
-        <p>+${bonusYears} years of research energy</p>
+        <p>The excitement makes you feel ${bonusYears} years younger!</p>
         <p>+${bonusFame} fame from the scientific community</p>
         `,
         [{ text: 'Amazing!', action: () => { updatePlayerStats(); endTurn(); } }]
