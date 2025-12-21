@@ -1396,16 +1396,76 @@ function updateTheoriesList() {
         return;
     }
 
-    GameState.theories.forEach(theory => {
+    GameState.theories.forEach((theory, index) => {
         const div = document.createElement('div');
         div.className = 'theory-item';
+        div.style.cursor = 'pointer';
         div.innerHTML = `
             <div class="theory-name">${theory.hypothesis}</div>
             <div class="theory-author">Published by: ${theory.author}</div>
             <div class="theory-significance">Significance: ${'★'.repeat(theory.significance)}${'☆'.repeat(6 - theory.significance)}</div>
         `;
+
+        // Add hover handlers for tooltip
+        div.addEventListener('mouseenter', (e) => {
+            const content = generateTheoryTooltipContent(theory);
+            showBoardTooltip(e.clientX, e.clientY, content);
+        });
+
+        div.addEventListener('mousemove', (e) => {
+            const tooltip = document.getElementById('board-tooltip');
+            if (tooltip.classList.contains('visible')) {
+                showBoardTooltip(e.clientX, e.clientY, tooltip.innerHTML);
+            }
+        });
+
+        div.addEventListener('mouseleave', () => {
+            hideBoardTooltip();
+        });
+
         container.appendChild(div);
     });
+}
+
+function generateTheoryTooltipContent(theory) {
+    let html = `
+        <div class="tooltip-title">Established Theory</div>
+        <div class="tooltip-type">Published by ${theory.author}</div>
+        <div class="tooltip-desc">Significance: ${'★'.repeat(theory.significance)}${'☆'.repeat(6 - theory.significance)} (${theory.fameAwarded} fame awarded)</div>
+    `;
+
+    html += `<div class="tooltip-hypothesis proven">`;
+
+    // Show contributions with authors
+    if (theory.contributions && theory.contributions.length > 0) {
+        html += `<div class="tooltip-contributions">`;
+        theory.contributions.forEach((contrib, idx) => {
+            const isFirst = idx === 0;
+            const label = isFirst ? 'Proposed by' : 'Added by';
+            html += `<div class="tooltip-contribution">
+                <div class="tooltip-contribution-author">${label} ${contrib.author}:</div>
+                <div class="tooltip-contribution-text">"${contrib.text}"</div>
+            </div>`;
+        });
+        html += `</div>`;
+    } else {
+        // Fallback for old data without contributions array
+        html += `<div class="tooltip-hypothesis-text">"${theory.hypothesis}"</div>`;
+    }
+
+    if (theory.investments && theory.investments.length > 0) {
+        html += `<div class="tooltip-investments">`;
+        html += `<div style="color: #4ecdc4; margin-bottom: 4px;">Total Investments:</div>`;
+        theory.investments.forEach(inv => {
+            html += `<div class="tooltip-investor"><span>${inv.player}</span><span>${inv.years} yrs</span></div>`;
+        });
+        html += `</div>`;
+    }
+
+    html += `</div>`;
+    html += `<div class="tooltip-status proven">ESTABLISHED THEORY</div>`;
+
+    return html;
 }
 
 // ============================================
@@ -1845,7 +1905,9 @@ function handleNPCProveTheory(space) {
         hypothesis: space.hypothesis,
         author: maxInvestor.player,
         significance: significance,
-        fameAwarded: fameReward
+        fameAwarded: fameReward,
+        contributions: space.contributions ? [...space.contributions] : [],
+        investments: space.investments ? [...space.investments] : []
     });
 
     showModal(
