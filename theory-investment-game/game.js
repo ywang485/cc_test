@@ -2260,7 +2260,7 @@ function finishNPCTurn() {
 
     if (!GameState.gameOver) {
         updateTurnDisplay();
-        document.getElementById('roll-dice-btn').disabled = false;
+        // Don't enable button here - updateTurnDisplay handles it based on AI status
     }
 }
 
@@ -2303,7 +2303,7 @@ function endTurn() {
         handleNPCTurn();
     } else {
         updateTurnDisplay();
-        document.getElementById('roll-dice-btn').disabled = false;
+        // Don't enable button here - updateTurnDisplay handles it based on AI status
     }
 }
 
