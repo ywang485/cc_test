@@ -302,18 +302,18 @@ const SPACE_TYPES = {
     EUREKA: 'eureka'
 };
 
-// Classical warm earth tone colors
+// Muted earth tone colors (reduced saturation)
 const SPACE_COLORS = {
-    [SPACE_TYPES.START]: '#355e3b',      // Forest green
-    [SPACE_TYPES.HYPOTHESIS]: '#c9a227', // Gold
-    [SPACE_TYPES.RECRUIT]: '#8b5a2b',    // Sepia light
-    [SPACE_TYPES.CONFERENCE]: '#5c3317', // Sepia dark
-    [SPACE_TYPES.SABBATICAL]: '#4a7c59', // Sage green
-    [SPACE_TYPES.PEER_REVIEW]: '#722f37', // Burgundy
-    [SPACE_TYPES.GRANT]: '#2e5939',      // Dark green
-    [SPACE_TYPES.SCANDAL]: '#8b2500',    // Dark red
-    [SPACE_TYPES.COLLABORATION]: '#6b4423', // Brown
-    [SPACE_TYPES.EUREKA]: '#d4af37'      // Gold light
+    [SPACE_TYPES.START]: '#4a5a4d',      // Muted forest green
+    [SPACE_TYPES.HYPOTHESIS]: '#a89458', // Muted gold
+    [SPACE_TYPES.RECRUIT]: '#7a6048',    // Muted sepia
+    [SPACE_TYPES.CONFERENCE]: '#524035', // Muted sepia dark
+    [SPACE_TYPES.SABBATICAL]: '#5a6b5a', // Muted sage green
+    [SPACE_TYPES.PEER_REVIEW]: '#6b4a4e', // Muted burgundy
+    [SPACE_TYPES.GRANT]: '#4a5a4d',      // Muted dark green
+    [SPACE_TYPES.SCANDAL]: '#7a4540',    // Muted dark red
+    [SPACE_TYPES.COLLABORATION]: '#5f4a3a', // Muted brown
+    [SPACE_TYPES.EUREKA]: '#b8a060'      // Muted gold light
 };
 
 const SPACE_DESCRIPTIONS = {
@@ -975,8 +975,8 @@ function drawSpaceIcon(ctx, type, x, y, size, isProven = false) {
 function drawStartIcon(ctx, cx, cy, scale) {
     // Quill pen and inkwell - classical scientific beginning
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#3d2914';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#3a3028';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -1014,8 +1014,8 @@ function drawStartIcon(ctx, cx, cy, scale) {
 function drawHypothesisIcon(ctx, cx, cy, scale) {
     // Classical alchemical retort/flask
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#3d2914';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#3a3028';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1059,8 +1059,8 @@ function drawHypothesisIcon(ctx, cx, cy, scale) {
 function drawProvenIcon(ctx, cx, cy, scale) {
     // Laurel wreath - symbol of established achievement
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#355e3b';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#4a5a4d';
     ctx.lineWidth = 1.2 * s;
     ctx.lineCap = 'round';
 
@@ -1087,7 +1087,7 @@ function drawProvenIcon(ctx, cx, cy, scale) {
     }
 
     // Central stem/ribbon at bottom
-    ctx.strokeStyle = '#c9a227';
+    ctx.strokeStyle = '#a89458';
     ctx.lineWidth = 2 * s;
     ctx.beginPath();
     ctx.moveTo(cx - 4 * s, cy + 8 * s);
@@ -1098,8 +1098,8 @@ function drawProvenIcon(ctx, cx, cy, scale) {
 function drawRecruitIcon(ctx, cx, cy, scale) {
     // Classical scholar with scroll - period appropriate student
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#3d2914';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#3a3028';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1138,8 +1138,8 @@ function drawRecruitIcon(ctx, cx, cy, scale) {
 function drawConferenceIcon(ctx, cx, cy, scale) {
     // Royal Society style lectern with open book
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#3d2914';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#3a3028';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1190,8 +1190,8 @@ function drawConferenceIcon(ctx, cx, cy, scale) {
 function drawSabbaticalIcon(ctx, cx, cy, scale) {
     // Stack of books with candle - scholarly rest and contemplation
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#3d2914';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#3a3028';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1226,7 +1226,7 @@ function drawSabbaticalIcon(ctx, cx, cy, scale) {
     ctx.rect(cx + 7 * s, cy - 4 * s, 2 * s, 8 * s);
     ctx.stroke();
     // Flame
-    ctx.fillStyle = '#c9a227';
+    ctx.fillStyle = '#a89458';
     ctx.beginPath();
     ctx.moveTo(cx + 8 * s, cy - 4 * s);
     ctx.quadraticCurveTo(cx + 6 * s, cy - 8 * s, cx + 8 * s, cy - 10 * s);
@@ -1237,8 +1237,8 @@ function drawSabbaticalIcon(ctx, cx, cy, scale) {
 function drawPeerReviewIcon(ctx, cx, cy, scale) {
     // Period spectacles examining a document
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#3d2914';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#3a3028';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1284,8 +1284,8 @@ function drawPeerReviewIcon(ctx, cx, cy, scale) {
 function drawGrantIcon(ctx, cx, cy, scale) {
     // Royal coin purse with coins - period patronage
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#3d2914';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#3a3028';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1309,8 +1309,8 @@ function drawGrantIcon(ctx, cx, cy, scale) {
     ctx.stroke();
 
     // Gold coins spilling out
-    ctx.fillStyle = '#c9a227';
-    ctx.strokeStyle = '#8b6914';
+    ctx.fillStyle = '#a89458';
+    ctx.strokeStyle = '#6a5a3a';
     ctx.lineWidth = 1 * s;
     // Coin 1
     ctx.beginPath();
@@ -1327,8 +1327,8 @@ function drawGrantIcon(ctx, cx, cy, scale) {
 function drawScandalIcon(ctx, cx, cy, scale) {
     // Broken quill and spilled ink - scientific scandal
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#3d2914';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#3a3028';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1359,7 +1359,7 @@ function drawScandalIcon(ctx, cx, cy, scale) {
     ctx.stroke();
 
     // Spilled ink blot
-    ctx.fillStyle = '#2c1810';
+    ctx.fillStyle = '#2e2420';
     ctx.beginPath();
     ctx.ellipse(cx - 4 * s, cy + 6 * s, 6 * s, 4 * s, 0.2, 0, Math.PI * 2);
     ctx.fill();
@@ -1372,8 +1372,8 @@ function drawScandalIcon(ctx, cx, cy, scale) {
 function drawCollaborationIcon(ctx, cx, cy, scale) {
     // Two hands shaking with period sleeve cuffs
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#3d2914';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#3a3028';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -1429,8 +1429,8 @@ function drawCollaborationIcon(ctx, cx, cy, scale) {
 function drawEurekaIcon(ctx, cx, cy, scale) {
     // Newton's apple with enlightenment rays - classical eureka
     const s = scale;
-    ctx.strokeStyle = '#3d2914';
-    ctx.fillStyle = '#722f37';
+    ctx.strokeStyle = '#3a3028';
+    ctx.fillStyle = '#6b4a4e';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1440,11 +1440,11 @@ function drawEurekaIcon(ctx, cx, cy, scale) {
     ctx.bezierCurveTo(cx - 8 * s, cy - 6 * s, cx - 8 * s, cy + 6 * s, cx, cy + 6 * s);
     ctx.bezierCurveTo(cx + 8 * s, cy + 6 * s, cx + 8 * s, cy - 6 * s, cx, cy - 6 * s);
     ctx.fill();
-    ctx.strokeStyle = '#5c2029';
+    ctx.strokeStyle = '#5a3a40';
     ctx.stroke();
 
     // Apple stem
-    ctx.strokeStyle = '#3d2914';
+    ctx.strokeStyle = '#3a3028';
     ctx.lineWidth = 1.5 * s;
     ctx.beginPath();
     ctx.moveTo(cx, cy - 6 * s);
@@ -1452,7 +1452,7 @@ function drawEurekaIcon(ctx, cx, cy, scale) {
     ctx.stroke();
 
     // Leaf
-    ctx.fillStyle = '#355e3b';
+    ctx.fillStyle = '#4a5a4d';
     ctx.beginPath();
     ctx.moveTo(cx + 1 * s, cy - 10 * s);
     ctx.quadraticCurveTo(cx + 6 * s, cy - 12 * s, cx + 5 * s, cy - 8 * s);
@@ -1460,7 +1460,7 @@ function drawEurekaIcon(ctx, cx, cy, scale) {
     ctx.fill();
 
     // Enlightenment rays (radiating lines)
-    ctx.strokeStyle = '#c9a227';
+    ctx.strokeStyle = '#a89458';
     ctx.lineWidth = 1 * s;
     ctx.beginPath();
     // Top ray
@@ -1522,7 +1522,7 @@ function renderBoard() {
     const padding = basePadding;
 
     // Clear canvas with parchment background
-    ctx.fillStyle = '#f4e4bc';
+    ctx.fillStyle = '#e8dcc8';
     ctx.fillRect(0, 0, logicalBoardWidth, logicalBoardHeight);
 
     // Add subtle aged paper texture effect
@@ -1535,10 +1535,10 @@ function renderBoard() {
     }
 
     // Draw decorative border
-    ctx.strokeStyle = '#704214';
+    ctx.strokeStyle = '#5a4a3a';
     ctx.lineWidth = 2;
     ctx.strokeRect(8, 8, logicalBoardWidth - 16, logicalBoardHeight - 16);
-    ctx.strokeStyle = '#c9a227';
+    ctx.strokeStyle = '#a89458';
     ctx.lineWidth = 1;
     ctx.strokeRect(12, 12, logicalBoardWidth - 24, logicalBoardHeight - 24);
 
@@ -1589,7 +1589,7 @@ function renderBoard() {
 
         // Draw border for hypothesis spaces with content
         if (space.hypothesis) {
-            ctx.strokeStyle = space.isProven ? '#fff' : '#ffd93d';
+            ctx.strokeStyle = space.isProven ? '#fff' : '#c8b070';
             ctx.lineWidth = 3;
             ctx.strokeRect(pos.x + 2, pos.y + 2, spaceSize - 6, spaceSize - 6);
         }
@@ -1662,7 +1662,7 @@ function renderBoard() {
             ctx.fill();
         }
 
-        ctx.fillStyle = '#9b59b6';
+        ctx.fillStyle = '#7a6080';
         ctx.beginPath();
         ctx.moveTo(npcX, npcY - 12);
         ctx.lineTo(npcX + 10, npcY + 8);
@@ -1787,7 +1787,7 @@ function generateTheoryTooltipContent(theory) {
 
     if (theory.investments && theory.investments.length > 0) {
         html += `<div class="tooltip-investments">`;
-        html += `<div style="color: #4ecdc4; margin-bottom: 4px;">Total Investments:</div>`;
+        html += `<div style="color: #6a9a98; margin-bottom: 4px;">Total Investments:</div>`;
         theory.investments.forEach(inv => {
             html += `<div class="tooltip-investor"><span>${inv.player}</span><span>${inv.years} yrs</span></div>`;
         });
@@ -1818,7 +1818,7 @@ function handleHypothesisSpace(player, space) {
                 <input type="text" id="hypothesis-input" placeholder="Enter your hypothesis about ${GameState.entity.name}...">
             </div>
             <p class="info-text">Available life years: ${availableYears}</p>
-            ${availableYears < space.investmentCost ? '<p style="color: #ff6b6b;">Warning: You don\'t have enough life years!</p>' : ''}
+            ${availableYears < space.investmentCost ? '<p style="color: #a86060;">Warning: You don\'t have enough life years!</p>' : ''}
             `,
             [
                 {
@@ -2036,7 +2036,7 @@ function handleScandalSpace(player) {
     showModal(
         'Academic Scandal!',
         `
-        <p style="color: #ff6b6b;">Your research has been called into question!</p>
+        <p style="color: #a86060;">Your research has been called into question!</p>
         <p>You lost ${fameLoss} fame points due to controversy.</p>
         <p class="info-text">Perhaps a methodology issue was discovered...</p>
         `,
@@ -2080,7 +2080,7 @@ function handleEurekaSpace(player) {
     showModal(
         'EUREKA! 💡',
         `
-        <p style="color: #ffd93d; font-size: 12px;">A moment of brilliance!</p>
+        <p style="color: #c8b070; font-size: 12px;">A moment of brilliance!</p>
         <p>You had a breakthrough insight about ${GameState.entity.name}!</p>
         <p>The excitement makes you feel ${bonusYears} years younger!</p>
         <p>+${bonusFame} fame from the scientific community</p>
@@ -2145,7 +2145,7 @@ function handleSpaceLanding(player, space) {
 function handleNPCTurn() {
     GameState.isNPCTurn = true;
     document.getElementById('current-turn').textContent = `Turn: Scientific Underdeterminism`;
-    document.getElementById('current-turn').style.color = '#9b59b6';
+    document.getElementById('current-turn').style.color = '#7a6080';
     document.getElementById('roll-dice-btn').disabled = true;
 
     log('Scientific Underdeterminism is taking its turn...', 'important');
@@ -2157,9 +2157,9 @@ function handleNPCTurn() {
         `
         <div class="dice-container">
             <span class="dice" id="npc-rolling-dice" style="font-size: 64px;">🎲</span>
-            <div class="dice-result" id="npc-dice-result" style="opacity: 0; color: #9b59b6;">?</div>
+            <div class="dice-result" id="npc-dice-result" style="opacity: 0; color: #7a6080;">?</div>
         </div>
-        <p style="text-align: center; color: #9b59b6; font-size: 8px;">Scientific Underdeterminism moves...</p>
+        <p style="text-align: center; color: #7a6080; font-size: 8px;">Scientific Underdeterminism moves...</p>
         `,
         []
     );
@@ -2245,7 +2245,7 @@ function handleNPCProveTheory(space) {
     showModal(
         'THEORY ESTABLISHED!',
         `
-        <p style="color: #ffd93d;">Scientific Underdeterminism has validated a hypothesis!</p>
+        <p style="color: #c8b070;">Scientific Underdeterminism has validated a hypothesis!</p>
         <p><strong>"${space.hypothesis}"</strong></p>
         <p>This is now an established theory about ${GameState.entity.name}!</p>
         <div class="dice-container">
@@ -2493,7 +2493,7 @@ function generateTooltipContent(spaceIndex) {
 
             if (space.investments.length > 0) {
                 html += `<div class="tooltip-investments">`;
-                html += `<div style="color: #4ecdc4; margin-bottom: 4px;">Investments:</div>`;
+                html += `<div style="color: #6a9a98; margin-bottom: 4px;">Investments:</div>`;
                 space.investments.forEach(inv => {
                     html += `<div class="tooltip-investor"><span>${inv.player}</span><span>${inv.years} yrs</span></div>`;
                 });
@@ -2517,7 +2517,7 @@ function generateTooltipContent(spaceIndex) {
     const npcHere = GameState.npc.position === spaceIndex;
 
     if (playersHere.length > 0 || npcHere) {
-        html += `<div class="tooltip-status" style="margin-top: 8px; color: #4ecdc4;">`;
+        html += `<div class="tooltip-status" style="margin-top: 8px; color: #6a9a98;">`;
         if (playersHere.length > 0) {
             html += `Players here: ${playersHere.map(p => p.name).join(', ')}`;
         }
@@ -2603,7 +2603,7 @@ function initSetupScreen() {
     addBtn.addEventListener('click', () => {
         const count = playerInputs.children.length;
         if (count < 4) {
-            const colors = ['#ff6b6b', '#4ecdc4', '#ffd93d', '#9b59b6'];
+            const colors = ['#a86060', '#6a9a98', '#c8b070', '#7a6080'];
             const names = ['Dr. Hypothesis', 'Prof. Theory', 'Doc. Evidence', 'Res. Empiricus'];
 
             const div = document.createElement('div');
