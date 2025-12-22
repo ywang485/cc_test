@@ -1486,26 +1486,50 @@ function renderBoard() {
     const ctx = canvas.getContext('2d');
     const board = GameState.board;
     const numSpaces = board.length;
+    const container = document.getElementById('board-container');
 
-    // Calculate board dimensions
-    const spaceSize = 60;
-    const padding = 20;
+    // Get container dimensions
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+
+    // Set canvas to fill container (accounting for device pixel ratio for sharpness)
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = containerWidth * dpr;
+    canvas.height = containerHeight * dpr;
+    canvas.style.width = containerWidth + 'px';
+    canvas.style.height = containerHeight + 'px';
+
+    // Calculate logical board dimensions
+    const baseSpaceSize = 60;
+    const basePadding = 20;
     const sideLength = Math.ceil(numSpaces / 4);
-    const boardWidth = sideLength * spaceSize + padding * 2;
-    const boardHeight = sideLength * spaceSize + padding * 2;
+    const logicalBoardWidth = sideLength * baseSpaceSize + basePadding * 2;
+    const logicalBoardHeight = sideLength * baseSpaceSize + basePadding * 2;
 
-    canvas.width = Math.max(boardWidth, 500);
-    canvas.height = Math.max(boardHeight, 500);
+    // Calculate scale to fit board in container while maintaining aspect ratio
+    const scaleX = containerWidth / logicalBoardWidth;
+    const scaleY = containerHeight / logicalBoardHeight;
+    const scale = Math.min(scaleX, scaleY);
+
+    // Apply scaling (including device pixel ratio)
+    ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+
+    // Store scale for hover detection
+    GameState.boardScale = scale;
+
+    // Use logical dimensions for drawing
+    const spaceSize = baseSpaceSize;
+    const padding = basePadding;
 
     // Clear canvas with parchment background
     ctx.fillStyle = '#f4e4bc';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, logicalBoardWidth, logicalBoardHeight);
 
     // Add subtle aged paper texture effect
     ctx.fillStyle = 'rgba(112, 66, 20, 0.03)';
     for (let i = 0; i < 50; i++) {
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
+        const x = Math.random() * logicalBoardWidth;
+        const y = Math.random() * logicalBoardHeight;
         const size = Math.random() * 3 + 1;
         ctx.fillRect(x, y, size, size);
     }
@@ -1513,15 +1537,15 @@ function renderBoard() {
     // Draw decorative border
     ctx.strokeStyle = '#704214';
     ctx.lineWidth = 2;
-    ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+    ctx.strokeRect(8, 8, logicalBoardWidth - 16, logicalBoardHeight - 16);
     ctx.strokeStyle = '#c9a227';
     ctx.lineWidth = 1;
-    ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+    ctx.strokeRect(12, 12, logicalBoardWidth - 24, logicalBoardHeight - 24);
 
     // Calculate positions for each space (going clockwise)
     const positions = [];
     const startX = padding;
-    const startY = canvas.height - padding - spaceSize;
+    const startY = logicalBoardHeight - padding - spaceSize;
 
     for (let i = 0; i < numSpaces; i++) {
         let x, y;
@@ -2414,17 +2438,17 @@ function getSpaceAtPosition(mouseX, mouseY) {
     const canvas = document.getElementById('game-board');
     const rect = canvas.getBoundingClientRect();
 
-    // Convert mouse position to canvas coordinates
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const canvasX = (mouseX - rect.left) * scaleX;
-    const canvasY = (mouseY - rect.top) * scaleY;
+    // Convert mouse position to logical board coordinates
+    // Account for the scale applied during rendering
+    const scale = GameState.boardScale || 1;
+    const logicalX = (mouseX - rect.left) / scale;
+    const logicalY = (mouseY - rect.top) / scale;
 
     // Check each space
     for (let i = 0; i < GameState.boardPositions.length; i++) {
         const pos = GameState.boardPositions[i];
-        if (canvasX >= pos.x && canvasX < pos.x + GameState.boardSpaceSize - 2 &&
-            canvasY >= pos.y && canvasY < pos.y + GameState.boardSpaceSize - 2) {
+        if (logicalX >= pos.x && logicalX < pos.x + GameState.boardSpaceSize - 2 &&
+            logicalY >= pos.y && logicalY < pos.y + GameState.boardSpaceSize - 2) {
             return i;
         }
     }
@@ -2661,3 +2685,10 @@ function startGame() {
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initSetupScreen);
+
+// Redraw board on window resize
+window.addEventListener('resize', () => {
+    if (GameState.board && GameState.board.length > 0) {
+        renderBoard();
+    }
+});
