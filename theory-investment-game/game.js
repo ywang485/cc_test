@@ -21,6 +21,11 @@ const GameState = {
     isNPCTurn: false,
     gameOver: false,
     turnNumber: 1,
+    // LLM state
+    llm: {
+        available: false,
+        provider: null
+    },
     // Animation state
     animation: {
         active: false,
@@ -659,13 +664,107 @@ const AI_HYPOTHESIS_ADDITIONS = [
     "This extends to higher-order interactions."
 ];
 
-function generateAIHypothesis() {
+// Check LLM availability on startup
+async function checkLLMAvailability() {
+    try {
+        const response = await fetch('/api/llm-status');
+        const data = await response.json();
+        GameState.llm.available = data.available;
+        GameState.llm.provider = data.provider;
+        if (data.available) {
+            console.log(`LLM available: ${data.provider}`);
+        }
+    } catch (e) {
+        // Server not running or endpoint not available
+        GameState.llm.available = false;
+        console.log('LLM not available - using fallback hypotheses');
+    }
+}
+
+// Generate hypothesis using LLM API
+async function generateLLMHypothesis() {
+    if (!GameState.llm.available) {
+        return generateFallbackHypothesis();
+    }
+
+    try {
+        // Collect existing hypotheses to avoid repetition
+        const existingHypotheses = GameState.board
+            .filter(s => s.hypothesis)
+            .map(s => s.hypothesis);
+
+        const response = await fetch('/api/generate-hypothesis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                entity: GameState.entity.name,
+                existingHypotheses
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.fallback || data.error) {
+            return generateFallbackHypothesis();
+        }
+
+        return data.hypothesis;
+    } catch (e) {
+        console.warn('LLM generation failed, using fallback:', e);
+        return generateFallbackHypothesis();
+    }
+}
+
+// Generate hypothesis addition using LLM API
+async function generateLLMHypothesisAddition(existingHypothesis) {
+    if (!GameState.llm.available) {
+        return generateFallbackHypothesisAddition();
+    }
+
+    try {
+        const response = await fetch('/api/generate-hypothesis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                entity: GameState.entity.name,
+                existingHypotheses: [existingHypothesis + ' (add a sarcastic elaboration to this)']
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.fallback || data.error) {
+            return generateFallbackHypothesisAddition();
+        }
+
+        // Truncate if too long for an addition
+        const addition = data.hypothesis;
+        if (addition.length > 150) {
+            return addition.substring(0, 147) + '...';
+        }
+        return addition;
+    } catch (e) {
+        console.warn('LLM addition failed, using fallback:', e);
+        return generateFallbackHypothesisAddition();
+    }
+}
+
+function generateFallbackHypothesis() {
     const template = AI_HYPOTHESIS_TEMPLATES[Math.floor(Math.random() * AI_HYPOTHESIS_TEMPLATES.length)];
     return template.replace('{entity}', GameState.entity.name);
 }
 
-function generateAIHypothesisAddition() {
+function generateFallbackHypothesisAddition() {
     return AI_HYPOTHESIS_ADDITIONS[Math.floor(Math.random() * AI_HYPOTHESIS_ADDITIONS.length)];
+}
+
+// Legacy sync functions (kept for compatibility, but prefer async versions)
+function generateAIHypothesis() {
+    return generateFallbackHypothesis();
+}
+
+function generateAIHypothesisAddition() {
+    return generateFallbackHypothesisAddition();
 }
 
 function makeAIDecision(player, space, decisionType) {
@@ -805,17 +904,27 @@ function handleAISpaceLanding(player, space) {
     }, 300);
 }
 
-function handleAIHypothesisSpace(player, space) {
+async function handleAIHypothesisSpace(player, space) {
     if (!space.hypothesis) {
-        // New hypothesis space
-        const decision = makeAIDecision(player, space, 'hypothesis_new');
+        // New hypothesis space - use LLM if available
+        const availableYears = player.availableYears;
+        const shouldInvest = availableYears >= space.investmentCost * 2 ||
+                            (availableYears >= space.investmentCost && Math.random() > 0.3);
 
-        if (decision.action === 'invest' && player.availableYears >= space.investmentCost) {
-            space.hypothesis = decision.hypothesis;
-            space.contributions.push({ text: decision.hypothesis, author: player.name, playerIndex: player.index });
+        if (shouldInvest && player.availableYears >= space.investmentCost) {
+            // Show thinking message while generating
+            if (GameState.llm.available) {
+                log(`${player.name} is formulating a hypothesis...`);
+            }
+
+            // Generate hypothesis (async if LLM available)
+            const hypothesis = await generateLLMHypothesis();
+
+            space.hypothesis = hypothesis;
+            space.contributions.push({ text: hypothesis, author: player.name, playerIndex: player.index });
             space.investments.push({ player: player.name, years: space.investmentCost, playerIndex: player.index });
             player.investLife(space.investmentCost);
-            log(`${player.name} proposed: "${decision.hypothesis}" and invested ${space.investmentCost} years.`, 'important');
+            log(`${player.name} proposed: "${hypothesis}" and invested ${space.investmentCost} years.`, 'important');
             renderBoard();
             updatePlayerStats();
             checkGameEnd();
@@ -831,11 +940,15 @@ function handleAIHypothesisSpace(player, space) {
         const decision = makeAIDecision(player, space, 'hypothesis_existing');
 
         if (decision.action === 'invest' && player.availableYears >= space.investmentCost) {
-            // Check if AI is adding to the hypothesis
-            if (decision.addition) {
-                space.hypothesis = space.hypothesis + ' ' + decision.addition;
-                space.contributions.push({ text: decision.addition, author: player.name, playerIndex: player.index });
-                log(`${player.name} expanded the hypothesis: "${decision.addition}"`, 'important');
+            // Check if AI should add to the hypothesis (40% chance, use LLM if available)
+            if (Math.random() > 0.6) {
+                if (GameState.llm.available) {
+                    log(`${player.name} is elaborating on the hypothesis...`);
+                }
+                const addition = await generateLLMHypothesisAddition(space.hypothesis);
+                space.hypothesis = space.hypothesis + ' ' + addition;
+                space.contributions.push({ text: addition, author: player.name, playerIndex: player.index });
+                log(`${player.name} expanded the hypothesis: "${addition}"`, 'important');
             }
 
             const existingInv = space.investments.find(i => i.playerIndex === player.index);
@@ -2684,7 +2797,11 @@ function startGame() {
 }
 
 // Initialize on load
-document.addEventListener('DOMContentLoaded', initSetupScreen);
+document.addEventListener('DOMContentLoaded', () => {
+    initSetupScreen();
+    // Check LLM availability (async, non-blocking)
+    checkLLMAvailability();
+});
 
 // Redraw board on window resize
 window.addEventListener('resize', () => {
