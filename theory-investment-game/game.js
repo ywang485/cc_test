@@ -666,6 +666,14 @@ const AI_HYPOTHESIS_ADDITIONS = [
 
 // Check LLM availability on startup
 async function checkLLMAvailability() {
+    // Skip if opened as a file (not served via HTTP)
+    if (window.location.protocol === 'file:') {
+        GameState.llm.available = false;
+        console.log('Running from file:// - LLM not available. Run with: npm start');
+        updateLLMIndicator();
+        return;
+    }
+
     try {
         const response = await fetch('/api/llm-status');
         const data = await response.json();
