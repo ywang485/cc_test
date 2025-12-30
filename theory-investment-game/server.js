@@ -32,6 +32,22 @@ Examples of the tone:
 
 Generate ONLY the hypothesis text, no quotes or extra formatting.`;
 
+// System prompt for hypothesis additions (expanding existing hypotheses)
+const ADDITION_PROMPT = `You are a sarcastic academic colleague who loves to one-up other researchers with absurd elaborations.
+Given an existing hypothesis, generate a SHORT addition (1 sentence, under 100 characters) that:
+- Sarcastically "builds upon" the original in an absurd way
+- Uses pompous academic language
+- Is concise and punchy
+- Adds a ridiculous twist or "clarification"
+
+Examples of additions:
+- "...particularly during retrograde Mercury."
+- "...as first theorized by my cat."
+- "...which explains everything except the actual data."
+- "...peer-reviewed by a focus group of squirrels."
+
+Generate ONLY the addition text, starting with "..." - no quotes or extra formatting.`;
+
 // Generate hypothesis using OpenAI
 async function generateWithOpenAI(entity, existingHypotheses) {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -95,6 +111,79 @@ async function generateWithGoogle(entity, existingHypotheses) {
             }],
             generationConfig: {
                 maxOutputTokens: 150,
+                temperature: 0.9
+            }
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.candidates[0].content.parts[0].text.trim();
+}
+
+// Generate hypothesis addition using OpenAI
+async function generateAdditionWithOpenAI(existingHypothesis) {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [
+                { role: 'system', content: ADDITION_PROMPT },
+                { role: 'user', content: `Existing hypothesis: "${existingHypothesis}"\n\nGenerate a sarcastic addition:` }
+            ],
+            max_tokens: 60,
+            temperature: 0.9
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.choices[0].message.content.trim();
+}
+
+// Generate hypothesis addition using Anthropic Claude
+async function generateAdditionWithAnthropic(existingHypothesis) {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: 60,
+            system: ADDITION_PROMPT,
+            messages: [
+                { role: 'user', content: `Existing hypothesis: "${existingHypothesis}"\n\nGenerate a sarcastic addition:` }
+            ]
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.content[0].text.trim();
+}
+
+// Generate hypothesis addition using Google Gemini
+async function generateAdditionWithGoogle(existingHypothesis) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            contents: [{
+                parts: [{
+                    text: `${ADDITION_PROMPT}\n\nExisting hypothesis: "${existingHypothesis}"\n\nGenerate a sarcastic addition:`
+                }]
+            }],
+            generationConfig: {
+                maxOutputTokens: 60,
                 temperature: 0.9
             }
         })
@@ -182,6 +271,50 @@ app.post('/api/generate-suggestions', async (req, res) => {
         );
 
         res.json({ suggestions, provider: llm });
+    } catch (error) {
+        console.error('LLM API error:', error);
+        res.status(500).json({
+            error: error.message,
+            fallback: true
+        });
+    }
+});
+
+// API endpoint to generate a sarcastic addition to an existing hypothesis
+app.post('/api/generate-addition', async (req, res) => {
+    const { existingHypothesis } = req.body;
+    const llm = getAvailableLLM();
+
+    if (!llm) {
+        return res.status(503).json({
+            error: 'No LLM API key configured',
+            fallback: true
+        });
+    }
+
+    if (!existingHypothesis) {
+        return res.status(400).json({
+            error: 'existingHypothesis is required',
+            fallback: true
+        });
+    }
+
+    try {
+        let addition;
+
+        switch (llm) {
+            case 'openai':
+                addition = await generateAdditionWithOpenAI(existingHypothesis);
+                break;
+            case 'anthropic':
+                addition = await generateAdditionWithAnthropic(existingHypothesis);
+                break;
+            case 'google':
+                addition = await generateAdditionWithGoogle(existingHypothesis);
+                break;
+        }
+
+        res.json({ addition, provider: llm });
     } catch (error) {
         console.error('LLM API error:', error);
         res.status(500).json({

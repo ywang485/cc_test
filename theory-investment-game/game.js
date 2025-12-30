@@ -757,12 +757,11 @@ async function generateLLMHypothesisAddition(existingHypothesis) {
     }
 
     try {
-        const response = await fetch('/api/generate-hypothesis', {
+        const response = await fetch('/api/generate-addition', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                entity: GameState.entity.name,
-                existingHypotheses: [existingHypothesis + ' (add a sarcastic elaboration to this)']
+                existingHypothesis
             })
         });
 
@@ -772,12 +771,7 @@ async function generateLLMHypothesisAddition(existingHypothesis) {
             return generateFallbackHypothesisAddition();
         }
 
-        // Truncate if too long for an addition
-        const addition = data.hypothesis;
-        if (addition.length > 150) {
-            return addition.substring(0, 147) + '...';
-        }
-        return addition;
+        return data.addition;
     } catch (e) {
         console.warn('LLM addition failed, using fallback:', e);
         return generateFallbackHypothesisAddition();
