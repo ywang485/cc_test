@@ -497,6 +497,17 @@ textarea {
     margin-top: 10px;
 }
 
+#modal-body .peer-review-text {
+    color: #e06060;
+    font-style: italic;
+    font-size: 9px;
+    background: rgba(150, 50, 50, 0.15);
+    padding: 10px;
+    border-left: 3px solid #b04040;
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
 #modal-buttons {
     display: flex;
     gap: 10px;

@@ -892,6 +892,31 @@ async function fetchIntegratedTheory(entity, hypotheses) {
     }
 }
 
+async function fetchPeerReview(hypothesis) {
+    if (!GameState.llm.available) {
+        return null;
+    }
+
+    try {
+        const response = await fetch('/api/generate-review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hypothesis })
+        });
+
+        const data = await response.json();
+
+        if (data.fallback || data.error) {
+            return null;
+        }
+
+        return data.review;
+    } catch (e) {
+        console.warn('Failed to fetch peer review:', e);
+        return null;
+    }
+}
+
 // Legacy sync functions (kept for compatibility, but prefer async versions)
 function generateAIHypothesis() {
     return generateFallbackHypothesis();
@@ -2268,18 +2293,39 @@ function handleSabbaticalSpace(player) {
     );
 }
 
-function handlePeerReviewSpace(player) {
+async function handlePeerReviewSpace(player) {
     if (player.theoriesPublished.length > 0) {
         const bonus = rollDice();
         player.addFame(bonus);
-        showModal(
-            'Peer Review',
-            `
-            <p>Your published work underwent peer review!</p>
-            <p>The reviewers were impressed. +${bonus} fame!</p>
-            `,
-            [{ text: 'OK', action: () => { updatePlayerStats(); endTurn(); } }]
-        );
+
+        // Pick a random published theory to review
+        const randomTheory = player.theoriesPublished[
+            Math.floor(Math.random() * player.theoriesPublished.length)
+        ];
+
+        // Try to get LLM-generated review
+        const review = await fetchPeerReview(randomTheory);
+
+        if (review) {
+            showModal(
+                'Peer Review',
+                `
+                <p><strong>Reviewer #2 comments on your work:</strong></p>
+                <p class="peer-review-text">"${review}"</p>
+                <p class="info-text" style="margin-top: 15px;">Despite the harsh review, you survived! +${bonus} fame</p>
+                `,
+                [{ text: 'Whatever...', action: () => { updatePlayerStats(); endTurn(); } }]
+            );
+        } else {
+            showModal(
+                'Peer Review',
+                `
+                <p>Your published work underwent peer review!</p>
+                <p>The reviewers were impressed. +${bonus} fame!</p>
+                `,
+                [{ text: 'OK', action: () => { updatePlayerStats(); endTurn(); } }]
+            );
+        }
     } else {
         showModal(
             'Peer Review',

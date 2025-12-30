@@ -77,6 +77,23 @@ Given an entity and a list of "proven" hypotheses about it, write a dramatic, hu
 
 Write in the style of a Nobel Prize acceptance speech written by someone who takes themselves far too seriously.`;
 
+// System prompt for generating mean peer reviews
+const PEER_REVIEW_PROMPT = `You are Reviewer #2, the most notoriously harsh and petty academic reviewer in history.
+Given a hypothesis, write a scathing, sarcastic peer review comment that:
+- Is brutally dismissive of the "research"
+- Points out absurd flaws in methodology (that don't actually exist)
+- Suggests the author should reconsider their career choices
+- Uses passive-aggressive academic language
+- Is mean but in a funny, over-the-top way
+- Should be 2-3 sentences, short and cutting
+
+Examples of the tone:
+- "While the author's enthusiasm is... notable, one wonders if they've ever actually read a textbook."
+- "This hypothesis would benefit from the revolutionary concept known as 'evidence.'"
+- "I recommend rejection, followed by a period of quiet reflection."
+
+Generate ONLY the review comment, no quotes or formatting.`;
+
 // Generate hypothesis using OpenAI
 async function generateWithOpenAI(entity, existingHypotheses) {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -580,6 +597,123 @@ app.post('/api/generate-theory', async (req, res) => {
         }
 
         res.json({ theory, provider: llm });
+    } catch (error) {
+        console.error('LLM API error:', error);
+        res.status(500).json({
+            error: error.message,
+            fallback: true
+        });
+    }
+});
+
+// Generate peer review using OpenAI
+async function generateReviewWithOpenAI(hypothesis) {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [
+                { role: 'system', content: PEER_REVIEW_PROMPT },
+                { role: 'user', content: `Review this hypothesis: "${hypothesis}"` }
+            ],
+            max_tokens: 150,
+            temperature: 0.9
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.choices[0].message.content.trim();
+}
+
+// Generate peer review using Anthropic Claude
+async function generateReviewWithAnthropic(hypothesis) {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: 150,
+            system: PEER_REVIEW_PROMPT,
+            messages: [
+                { role: 'user', content: `Review this hypothesis: "${hypothesis}"` }
+            ]
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.content[0].text.trim();
+}
+
+// Generate peer review using Google Gemini
+async function generateReviewWithGoogle(hypothesis) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            contents: [{
+                parts: [{
+                    text: `${PEER_REVIEW_PROMPT}\n\nReview this hypothesis: "${hypothesis}"`
+                }]
+            }],
+            generationConfig: {
+                maxOutputTokens: 150,
+                temperature: 0.9
+            }
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.candidates[0].content.parts[0].text.trim();
+}
+
+// API endpoint to generate a mean peer review
+app.post('/api/generate-review', async (req, res) => {
+    const { hypothesis } = req.body;
+    const llm = getAvailableLLM();
+
+    if (!llm) {
+        return res.status(503).json({
+            error: 'No LLM API key configured',
+            fallback: true
+        });
+    }
+
+    if (!hypothesis) {
+        return res.status(400).json({
+            error: 'hypothesis is required',
+            fallback: true
+        });
+    }
+
+    try {
+        let review;
+
+        switch (llm) {
+            case 'openai':
+                review = await generateReviewWithOpenAI(hypothesis);
+                break;
+            case 'anthropic':
+                review = await generateReviewWithAnthropic(hypothesis);
+                break;
+            case 'google':
+                review = await generateReviewWithGoogle(hypothesis);
+                break;
+        }
+
+        res.json({ review, provider: llm });
     } catch (error) {
         console.error('LLM API error:', error);
         res.status(500).json({
