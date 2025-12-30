@@ -793,6 +793,53 @@ function generateFallbackHypothesisAddition() {
     return AI_HYPOTHESIS_ADDITIONS[Math.floor(Math.random() * AI_HYPOTHESIS_ADDITIONS.length)];
 }
 
+// Fetch multiple hypothesis suggestions for human players
+async function fetchHypothesisSuggestions(count = 3) {
+    if (!GameState.llm.available) {
+        // Return fallback suggestions
+        const suggestions = [];
+        for (let i = 0; i < count; i++) {
+            suggestions.push(generateFallbackHypothesis());
+        }
+        return suggestions;
+    }
+
+    try {
+        const existingHypotheses = GameState.board
+            .filter(s => s.hypothesis)
+            .map(s => s.hypothesis);
+
+        const response = await fetch('/api/generate-suggestions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                entity: GameState.entity.name,
+                existingHypotheses,
+                count
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.fallback || data.error) {
+            const suggestions = [];
+            for (let i = 0; i < count; i++) {
+                suggestions.push(generateFallbackHypothesis());
+            }
+            return suggestions;
+        }
+
+        return data.suggestions;
+    } catch (e) {
+        console.warn('Failed to fetch suggestions:', e);
+        const suggestions = [];
+        for (let i = 0; i < count; i++) {
+            suggestions.push(generateFallbackHypothesis());
+        }
+        return suggestions;
+    }
+}
+
 // Legacy sync functions (kept for compatibility, but prefer async versions)
 function generateAIHypothesis() {
     return generateFallbackHypothesis();
@@ -1951,18 +1998,25 @@ function generateTheoryTooltipContent(theory) {
 // ============================================
 // GAME ACTIONS
 // ============================================
-function handleHypothesisSpace(player, space) {
+async function handleHypothesisSpace(player, space) {
     if (!space.hypothesis) {
         // First player to land here - can create hypothesis
         const availableYears = player.availableYears;
 
+        // Show initial modal with loading state for suggestions
         showModal(
             'New Research Opportunity!',
             `
             <p>You've discovered an unexplored research area about <strong>${GameState.entity.name}</strong>!</p>
             <p>You can formulate a hypothesis and invest ${space.investmentCost} years of life.</p>
+            <div class="suggestions-container">
+                <label>Suggested hypotheses (click to use):</label>
+                <div id="hypothesis-suggestions" class="hypothesis-suggestions">
+                    <div class="suggestion-loading">Generating suggestions...</div>
+                </div>
+            </div>
             <div class="input-group">
-                <label>Your Hypothesis:</label>
+                <label>Or write your own:</label>
                 <input type="text" id="hypothesis-input" placeholder="Enter your hypothesis about ${GameState.entity.name}...">
             </div>
             <p class="info-text">Available life years: ${availableYears}</p>
@@ -1992,6 +2046,25 @@ function handleHypothesisSpace(player, space) {
                 }
             ]
         );
+
+        // Fetch suggestions asynchronously and update the modal
+        const suggestions = await fetchHypothesisSuggestions(3);
+        const suggestionsContainer = document.getElementById('hypothesis-suggestions');
+        if (suggestionsContainer) {
+            suggestionsContainer.innerHTML = suggestions.map((s, i) =>
+                `<button class="suggestion-btn" data-suggestion="${i}">${s}</button>`
+            ).join('');
+
+            // Add click handlers to suggestion buttons
+            suggestionsContainer.querySelectorAll('.suggestion-btn').forEach((btn, i) => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('hypothesis-input').value = suggestions[i];
+                    // Highlight the selected suggestion
+                    suggestionsContainer.querySelectorAll('.suggestion-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                });
+            });
+        }
     } else if (!space.isProven) {
         // Hypothesis exists - can invest more or add to description
         const availableYears = player.availableYears;

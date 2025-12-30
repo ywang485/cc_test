@@ -151,6 +151,46 @@ app.post('/api/generate-hypothesis', async (req, res) => {
     }
 });
 
+// API endpoint to generate multiple hypothesis suggestions
+app.post('/api/generate-suggestions', async (req, res) => {
+    const { entity, existingHypotheses = [], count = 3 } = req.body;
+    const llm = getAvailableLLM();
+
+    if (!llm) {
+        return res.status(503).json({
+            error: 'No LLM API key configured',
+            fallback: true
+        });
+    }
+
+    try {
+        // Generate multiple hypotheses in parallel
+        const suggestions = await Promise.all(
+            Array(count).fill().map(async (_, i) => {
+                // Add previous suggestions to avoid list to reduce duplicates
+                const avoidList = [...existingHypotheses];
+
+                switch (llm) {
+                    case 'openai':
+                        return await generateWithOpenAI(entity, avoidList);
+                    case 'anthropic':
+                        return await generateWithAnthropic(entity, avoidList);
+                    case 'google':
+                        return await generateWithGoogle(entity, avoidList);
+                }
+            })
+        );
+
+        res.json({ suggestions, provider: llm });
+    } catch (error) {
+        console.error('LLM API error:', error);
+        res.status(500).json({
+            error: error.message,
+            fallback: true
+        });
+    }
+});
+
 // Start server
 app.listen(PORT, () => {
     const llm = getAvailableLLM();
