@@ -674,10 +674,37 @@ async function checkLLMAvailability() {
         if (data.available) {
             console.log(`LLM available: ${data.provider}`);
         }
+        updateLLMIndicator();
     } catch (e) {
         // Server not running or endpoint not available
         GameState.llm.available = false;
         console.log('LLM not available - using fallback hypotheses');
+        updateLLMIndicator();
+    }
+}
+
+// Update the LLM status indicator in the UI
+function updateLLMIndicator() {
+    const indicator = document.getElementById('llm-status');
+    if (!indicator) return;
+
+    const icon = indicator.querySelector('.llm-icon');
+    const text = indicator.querySelector('.llm-text');
+
+    if (GameState.llm.available) {
+        indicator.className = 'llm-indicator active';
+        icon.textContent = '🧠';
+        const providerNames = {
+            'openai': 'GPT',
+            'anthropic': 'Claude',
+            'google': 'Gemini'
+        };
+        const displayName = providerNames[GameState.llm.provider] || GameState.llm.provider;
+        text.textContent = `AI: ${displayName}`;
+    } else {
+        indicator.className = 'llm-indicator inactive';
+        icon.textContent = '📝';
+        text.textContent = 'AI: Templates';
     }
 }
 
