@@ -1048,12 +1048,12 @@ async function handleAIHypothesisSpace(player, space) {
         const decision = makeAIDecision(player, space, 'hypothesis_existing');
 
         if (decision.action === 'invest' && player.availableYears >= space.investmentCost) {
-            // Check if AI should add to the hypothesis (40% chance, use LLM if available)
-            if (Math.random() > 0.6) {
-                if (GameState.llm.available) {
-                    log(`${player.name} is elaborating on the hypothesis...`);
-                }
-                const addition = await generateLLMHypothesisAddition(space.hypothesis);
+            // AI always tries to add to the hypothesis when investing (use LLM if available)
+            if (GameState.llm.available) {
+                log(`${player.name} is elaborating on the hypothesis...`);
+            }
+            const addition = await generateLLMHypothesisAddition(space.hypothesis);
+            if (addition) {
                 space.hypothesis = space.hypothesis + ' ' + addition;
                 space.contributions.push({ text: addition, author: player.name, playerIndex: player.index });
                 log(`${player.name} expanded the hypothesis: "${addition}"`, 'important');
