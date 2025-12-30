@@ -212,7 +212,10 @@ async function generateAdditionWithGoogle(existingHypothesis) {
 }
 
 // Generate entity suggestion using OpenAI
-async function generateEntityWithOpenAI(entityType) {
+async function generateEntityWithOpenAI(entityType, variationIndex = 0) {
+    const variations = ['unique', 'creative', 'unexpected'];
+    const variation = variations[variationIndex % variations.length];
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -223,7 +226,7 @@ async function generateEntityWithOpenAI(entityType) {
             model: 'gpt-3.5-turbo',
             messages: [
                 { role: 'system', content: ENTITY_PROMPT },
-                { role: 'user', content: `Suggest a funny research ${entityType} for a satirical academic game:` }
+                { role: 'user', content: `Suggest a ${variation} and funny research ${entityType} for a satirical academic game (suggestion #${variationIndex + 1}):` }
             ],
             max_tokens: 30,
             temperature: 1.0
@@ -236,7 +239,10 @@ async function generateEntityWithOpenAI(entityType) {
 }
 
 // Generate entity suggestion using Anthropic Claude
-async function generateEntityWithAnthropic(entityType) {
+async function generateEntityWithAnthropic(entityType, variationIndex = 0) {
+    const variations = ['unique', 'creative', 'unexpected'];
+    const variation = variations[variationIndex % variations.length];
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -249,7 +255,7 @@ async function generateEntityWithAnthropic(entityType) {
             max_tokens: 30,
             system: ENTITY_PROMPT,
             messages: [
-                { role: 'user', content: `Suggest a funny research ${entityType} for a satirical academic game:` }
+                { role: 'user', content: `Suggest a ${variation} and funny research ${entityType} for a satirical academic game (suggestion #${variationIndex + 1}):` }
             ]
         })
     });
@@ -260,7 +266,10 @@ async function generateEntityWithAnthropic(entityType) {
 }
 
 // Generate entity suggestion using Google Gemini
-async function generateEntityWithGoogle(entityType) {
+async function generateEntityWithGoogle(entityType, variationIndex = 0) {
+    const variations = ['unique', 'creative', 'unexpected'];
+    const variation = variations[variationIndex % variations.length];
+
     const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
         method: 'POST',
         headers: {
@@ -269,7 +278,7 @@ async function generateEntityWithGoogle(entityType) {
         body: JSON.stringify({
             contents: [{
                 parts: [{
-                    text: `${ENTITY_PROMPT}\n\nSuggest a funny research ${entityType} for a satirical academic game:`
+                    text: `${ENTITY_PROMPT}\n\nSuggest a ${variation} and funny research ${entityType} for a satirical academic game (suggestion #${variationIndex + 1}):`
                 }]
             }],
             generationConfig: {
@@ -427,16 +436,16 @@ app.post('/api/generate-entities', async (req, res) => {
     }
 
     try {
-        // Generate multiple entity suggestions in parallel
+        // Generate multiple entity suggestions in parallel with variation indices
         const entities = await Promise.all(
-            Array(count).fill().map(async () => {
+            Array(count).fill().map(async (_, index) => {
                 switch (llm) {
                     case 'openai':
-                        return await generateEntityWithOpenAI(entityType);
+                        return await generateEntityWithOpenAI(entityType, index);
                     case 'anthropic':
-                        return await generateEntityWithAnthropic(entityType);
+                        return await generateEntityWithAnthropic(entityType, index);
                     case 'google':
-                        return await generateEntityWithGoogle(entityType);
+                        return await generateEntityWithGoogle(entityType, index);
                 }
             })
         );
