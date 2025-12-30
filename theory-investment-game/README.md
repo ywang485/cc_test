@@ -113,7 +113,7 @@ Only one API key is required. The game uses the first available:
 |----------|-------|---------------------|
 | OpenAI | GPT-3.5 Turbo | `OPENAI_API_KEY` |
 | Anthropic | Claude 3 Haiku | `ANTHROPIC_API_KEY` |
-| Google | Gemini 1.5 Flash | `GOOGLE_API_KEY` |
+| Google | Gemini 2.0 Flash | `GOOGLE_API_KEY` |
 
 ### Configuration
 
