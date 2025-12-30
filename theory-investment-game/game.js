@@ -1802,7 +1802,17 @@ function renderBoard() {
         const pos = positions[i];
         if (!pos) return;
 
-        const color = SPACE_COLORS[space.type] || '#666';
+        let color = SPACE_COLORS[space.type] || '#666';
+
+        // Use the initial investor's color for hypothesis spaces with content
+        if (space.type === SPACE_TYPES.HYPOTHESIS && space.contributions && space.contributions.length > 0) {
+            const initialInvestorIndex = space.contributions[0].playerIndex;
+            const initialInvestor = GameState.players[initialInvestorIndex];
+            if (initialInvestor) {
+                // Blend the player's color with the base hypothesis color for visibility
+                color = initialInvestor.color;
+            }
+        }
 
         // Draw space background
         ctx.fillStyle = color;
