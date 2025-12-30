@@ -866,6 +866,32 @@ async function fetchEntitySuggestions(entityType, count = 3) {
     }
 }
 
+// Fetch integrated theory for game end
+async function fetchIntegratedTheory(entity, hypotheses) {
+    if (!GameState.llm.available || hypotheses.length === 0) {
+        return null;
+    }
+
+    try {
+        const response = await fetch('/api/generate-theory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entity, hypotheses })
+        });
+
+        const data = await response.json();
+
+        if (data.fallback || data.error) {
+            return null;
+        }
+
+        return data.theory;
+    } catch (e) {
+        console.warn('Failed to fetch integrated theory:', e);
+        return null;
+    }
+}
+
 // Legacy sync functions (kept for compatibility, but prefer async versions)
 function generateAIHypothesis() {
     return generateFallbackHypothesis();
@@ -2660,31 +2686,129 @@ function checkGameEnd() {
     }
 }
 
-function endGame(winner, reason) {
+async function endGame(winner, reason) {
     GameState.gameOver = true;
     playSound('win');
 
     document.getElementById('game-screen').style.display = 'none';
     document.getElementById('gameover-screen').style.display = 'block';
 
+    // Winner display with trophy
     document.getElementById('winner-display').innerHTML = `
-        <h2>Winner</h2>
+        <h2>🏆 WINNER 🏆</h2>
         <div class="winner-name" style="color: ${winner.color}">${winner.name}</div>
+        <div class="winner-fame">Total Fame: ${winner.totalFame}</div>
         <p style="margin-top: 15px; font-size: 8px;">${reason}</p>
     `;
 
-    let statsHTML = '';
-    GameState.players.forEach(player => {
+    // Collect all proven hypotheses and calculate contributions
+    const provenSpaces = GameState.board.filter(s => s.isProven && s.hypothesis);
+    const provenHypotheses = provenSpaces.map(s => s.hypothesis);
+
+    // Calculate contributions per player
+    const contributions = {};
+    GameState.players.forEach(p => {
+        contributions[p.index] = { player: p, years: 0, hypotheses: 0 };
+    });
+
+    provenSpaces.forEach(space => {
+        space.investments.forEach(inv => {
+            if (contributions[inv.playerIndex]) {
+                contributions[inv.playerIndex].years += inv.years;
+            }
+        });
+        space.contributions.forEach(contrib => {
+            if (contributions[contrib.playerIndex]) {
+                contributions[contrib.playerIndex].hypotheses++;
+            }
+        });
+    });
+
+    // Sort contributors by years invested
+    const sortedContributors = Object.values(contributions)
+        .filter(c => c.years > 0 || c.hypotheses > 0)
+        .sort((a, b) => b.years - a.years);
+
+    // Show entity name
+    document.getElementById('theory-entity').innerHTML = `
+        <div class="entity-reveal">Concerning the nature of</div>
+        <div class="entity-name">"${GameState.entity.name}"</div>
+    `;
+
+    // Generate theory revelation
+    if (provenHypotheses.length > 0) {
+        // Show loading state
+        document.getElementById('theory-content').innerHTML = `
+            <div class="theory-loading">✨ Synthesizing groundbreaking discoveries... ✨</div>
+        `;
+
+        // Try to get LLM-generated integrated theory
+        const integratedTheory = await fetchIntegratedTheory(GameState.entity.name, provenHypotheses);
+
+        if (integratedTheory) {
+            document.getElementById('theory-content').innerHTML = `
+                <div class="theory-text">${integratedTheory}</div>
+                <div class="theory-hypotheses">
+                    <h4>Established Theories:</h4>
+                    ${provenHypotheses.map((h, i) => `<div class="proven-hypothesis">${i + 1}. "${h}"</div>`).join('')}
+                </div>
+            `;
+        } else {
+            // Fallback: just list the hypotheses
+            document.getElementById('theory-content').innerHTML = `
+                <div class="theory-text fallback">
+                    After years of rigorous research and academic debate, the scientific community has established the following truths:
+                </div>
+                <div class="theory-hypotheses">
+                    ${provenHypotheses.map((h, i) => `<div class="proven-hypothesis">${i + 1}. "${h}"</div>`).join('')}
+                </div>
+            `;
+        }
+
+        // Show contributors
+        if (sortedContributors.length > 0) {
+            document.getElementById('theory-contributors').innerHTML = `
+                <h4>📚 Contributors to Science 📚</h4>
+                <div class="contributors-list">
+                    ${sortedContributors.map((c, i) => `
+                        <div class="contributor ${i === 0 ? 'top-contributor' : ''}" style="border-color: ${c.player.color}">
+                            <span class="contributor-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}</span>
+                            <span class="contributor-name" style="color: ${c.player.color}">${c.player.name}</span>
+                            <span class="contributor-stats">${c.years} years invested</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+    } else {
+        // No proven theories
+        document.getElementById('theory-content').innerHTML = `
+            <div class="theory-text no-theories">
+                Alas, no hypotheses were proven during this research session.
+                The mystery of "${GameState.entity.name}" remains unsolved...
+            </div>
+        `;
+        document.getElementById('theory-contributors').innerHTML = '';
+    }
+
+    // Final stats
+    let statsHTML = '<h3>Final Standings</h3><div class="final-stats-grid">';
+    // Sort players by fame for final standings
+    const sortedPlayers = [...GameState.players].sort((a, b) => b.totalFame - a.totalFame);
+    sortedPlayers.forEach((player, rank) => {
+        const isWinner = player.index === winner.index;
         statsHTML += `
-            <div class="final-player-stat" style="border-color: ${player.color}">
+            <div class="final-player-stat ${isWinner ? 'winner-stat' : ''}" style="border-color: ${player.color}">
+                <div class="player-rank">${rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `#${rank + 1}`}</div>
                 <h3 style="color: ${player.color}">${player.name}</h3>
-                <div class="stat-row"><span>Final Age:</span><span class="value">${player.age}</span></div>
                 <div class="stat-row"><span>Total Fame:</span><span class="value">${player.totalFame}</span></div>
+                <div class="stat-row"><span>Final Age:</span><span class="value">${player.age}</span></div>
                 <div class="stat-row"><span>Theories:</span><span class="value">${player.theoriesPublished.length}</span></div>
                 <div class="stat-row"><span>Status:</span><span class="value">${player.isAlive ? 'Alive' : 'Deceased'}</span></div>
             </div>
         `;
     });
+    statsHTML += '</div>';
     document.getElementById('final-stats').innerHTML = statsHTML;
 }
 

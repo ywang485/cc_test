@@ -65,6 +65,18 @@ Examples by type:
 
 Generate ONLY the entity name (2-4 words), no quotes or extra formatting.`;
 
+// System prompt for generating integrated final theory
+const THEORY_PROMPT = `You are a pompous academic narrator announcing the culmination of groundbreaking research.
+Given an entity and a list of "proven" hypotheses about it, write a dramatic, humorous paragraph that:
+- Presents the integrated theory as an earth-shattering scientific breakthrough
+- Weaves together all the hypotheses into one gloriously absurd unified theory
+- Uses grandiose academic language with satirical undertones
+- Is sarcastic about how "revolutionary" this discovery is
+- Should be 3-5 sentences, dramatic and epic in tone
+- End with an ironic note about what this means for humanity
+
+Write in the style of a Nobel Prize acceptance speech written by someone who takes themselves far too seriously.`;
+
 // Generate hypothesis using OpenAI
 async function generateWithOpenAI(entity, existingHypotheses) {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -451,6 +463,123 @@ app.post('/api/generate-entities', async (req, res) => {
         );
 
         res.json({ entities, provider: llm });
+    } catch (error) {
+        console.error('LLM API error:', error);
+        res.status(500).json({
+            error: error.message,
+            fallback: true
+        });
+    }
+});
+
+// Generate integrated theory using OpenAI
+async function generateTheoryWithOpenAI(entity, hypotheses) {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [
+                { role: 'system', content: THEORY_PROMPT },
+                { role: 'user', content: `Entity: "${entity}"\n\nProven hypotheses:\n${hypotheses.map((h, i) => `${i + 1}. ${h}`).join('\n')}\n\nWrite the dramatic integrated theory announcement:` }
+            ],
+            max_tokens: 300,
+            temperature: 0.9
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.choices[0].message.content.trim();
+}
+
+// Generate integrated theory using Anthropic Claude
+async function generateTheoryWithAnthropic(entity, hypotheses) {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: 300,
+            system: THEORY_PROMPT,
+            messages: [
+                { role: 'user', content: `Entity: "${entity}"\n\nProven hypotheses:\n${hypotheses.map((h, i) => `${i + 1}. ${h}`).join('\n')}\n\nWrite the dramatic integrated theory announcement:` }
+            ]
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.content[0].text.trim();
+}
+
+// Generate integrated theory using Google Gemini
+async function generateTheoryWithGoogle(entity, hypotheses) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            contents: [{
+                parts: [{
+                    text: `${THEORY_PROMPT}\n\nEntity: "${entity}"\n\nProven hypotheses:\n${hypotheses.map((h, i) => `${i + 1}. ${h}`).join('\n')}\n\nWrite the dramatic integrated theory announcement:`
+                }]
+            }],
+            generationConfig: {
+                maxOutputTokens: 300,
+                temperature: 0.9
+            }
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.candidates[0].content.parts[0].text.trim();
+}
+
+// API endpoint to generate integrated final theory
+app.post('/api/generate-theory', async (req, res) => {
+    const { entity, hypotheses } = req.body;
+    const llm = getAvailableLLM();
+
+    if (!llm) {
+        return res.status(503).json({
+            error: 'No LLM API key configured',
+            fallback: true
+        });
+    }
+
+    if (!entity || !hypotheses || hypotheses.length === 0) {
+        return res.status(400).json({
+            error: 'entity and hypotheses are required',
+            fallback: true
+        });
+    }
+
+    try {
+        let theory;
+
+        switch (llm) {
+            case 'openai':
+                theory = await generateTheoryWithOpenAI(entity, hypotheses);
+                break;
+            case 'anthropic':
+                theory = await generateTheoryWithAnthropic(entity, hypotheses);
+                break;
+            case 'google':
+                theory = await generateTheoryWithGoogle(entity, hypotheses);
+                break;
+        }
+
+        res.json({ theory, provider: llm });
     } catch (error) {
         console.error('LLM API error:', error);
         res.status(500).json({

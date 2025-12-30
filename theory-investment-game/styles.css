@@ -763,6 +763,175 @@ textarea {
     color: #b8a060;
 }
 
+.final-player-stat.winner-stat {
+    border-color: #b8a060;
+    box-shadow: 0 0 20px rgba(184, 160, 96, 0.3);
+}
+
+.final-player-stat .player-rank {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.winner-fame {
+    font-size: 10px;
+    color: #b8a060;
+    margin-top: 10px;
+}
+
+#final-stats h3 {
+    width: 100%;
+    font-size: 14px;
+    color: #a89458;
+    margin-bottom: 10px;
+}
+
+.final-stats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Theory Revelation */
+.theory-revelation {
+    margin: 30px auto;
+    padding: 30px;
+    background: linear-gradient(135deg, #3a3028 0%, #2e2420 50%, #3a3028 100%);
+    border: 4px solid #b8a060;
+    max-width: 800px;
+    animation: revealGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes revealGlow {
+    0% { box-shadow: 0 0 10px rgba(184, 160, 96, 0.3); }
+    100% { box-shadow: 0 0 30px rgba(184, 160, 96, 0.6); }
+}
+
+.revelation-title {
+    font-size: 14px;
+    color: #b8a060;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(184, 160, 96, 0.5);
+}
+
+.theory-entity {
+    margin-bottom: 25px;
+}
+
+.entity-reveal {
+    font-size: 9px;
+    color: #8a7a68;
+    margin-bottom: 8px;
+}
+
+.entity-name {
+    font-size: 16px;
+    color: #c8b070;
+    animation: pulse 2s infinite;
+}
+
+.theory-content {
+    margin: 20px 0;
+}
+
+.theory-loading {
+    font-size: 10px;
+    color: #8a9a8a;
+    padding: 30px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.theory-text {
+    font-size: 9px;
+    line-height: 1.8;
+    color: #c8b8a0;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-left: 3px solid #b8a060;
+    text-align: left;
+    font-style: italic;
+}
+
+.theory-text.fallback {
+    font-style: normal;
+    color: #a89888;
+}
+
+.theory-text.no-theories {
+    font-style: italic;
+    color: #8a7a68;
+    text-align: center;
+    border-left: none;
+}
+
+.theory-hypotheses {
+    margin-top: 25px;
+    text-align: left;
+}
+
+.theory-hypotheses h4 {
+    font-size: 10px;
+    color: #a89458;
+    margin-bottom: 15px;
+}
+
+.proven-hypothesis {
+    font-size: 8px;
+    color: #9a8a78;
+    padding: 8px 12px;
+    margin: 5px 0;
+    background: rgba(0, 0, 0, 0.15);
+    border-left: 2px solid #7a6a58;
+}
+
+.theory-contributors {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #5a4a38;
+}
+
+.theory-contributors h4 {
+    font-size: 11px;
+    color: #a89458;
+    margin-bottom: 15px;
+}
+
+.contributors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.contributor {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 15px;
+    background: rgba(0, 0, 0, 0.15);
+    border-left: 3px solid #5a4a38;
+}
+
+.contributor.top-contributor {
+    background: rgba(184, 160, 96, 0.1);
+    border-left-color: #b8a060;
+}
+
+.contributor-rank {
+    font-size: 14px;
+    min-width: 30px;
+}
+
+.contributor-name {
+    font-size: 10px;
+    flex: 1;
+}
+
+.contributor-stats {
+    font-size: 8px;
+    color: #8a7a68;
+}
+
 /* Board Tooltip */
 .board-tooltip {
     position: fixed;
