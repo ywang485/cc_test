@@ -563,6 +563,53 @@ textarea {
     box-shadow: 0 0 8px rgba(120, 160, 120, 0.3);
 }
 
+/* Entity Suggestions (Setup Screen) */
+.entity-suggestions-container {
+    margin-top: 15px;
+}
+
+.suggest-btn {
+    font-size: 8px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+}
+
+.entity-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.entity-suggestion-btn {
+    background: #3a4a3a;
+    border: 1px solid #4a5a4a;
+    color: #a8b8a0;
+    padding: 8px 12px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.entity-suggestion-btn:hover {
+    background: #4a5a4a;
+    border-color: #6a7b6a;
+    color: #c8d8c0;
+}
+
+.entity-suggestion-btn.selected {
+    background: #5a6b5a;
+    border-color: #7a8b7a;
+    color: #d8e8d0;
+    box-shadow: 0 0 8px rgba(120, 160, 120, 0.3);
+}
+
+.suggestion-error {
+    color: #a86060;
+    font-size: 8px;
+    padding: 10px;
+}
+
 /* Dice Animation */
 .dice-container {
     text-align: center;

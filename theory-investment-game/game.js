@@ -699,6 +699,12 @@ function updateLLMIndicator() {
     const icon = indicator.querySelector('.llm-icon');
     const text = indicator.querySelector('.llm-text');
 
+    // Show/hide entity suggestions container based on LLM availability
+    const entitySuggestionsContainer = document.getElementById('entity-suggestions-container');
+    if (entitySuggestionsContainer) {
+        entitySuggestionsContainer.style.display = GameState.llm.available ? 'block' : 'none';
+    }
+
     if (GameState.llm.available) {
         indicator.className = 'llm-indicator active';
         icon.textContent = '🧠';
@@ -831,6 +837,32 @@ async function fetchHypothesisSuggestions(count = 3) {
             suggestions.push(generateFallbackHypothesis());
         }
         return suggestions;
+    }
+}
+
+// Fetch entity suggestions for game setup
+async function fetchEntitySuggestions(entityType, count = 3) {
+    if (!GameState.llm.available) {
+        return null; // No fallback for entities - return null to hide suggestions
+    }
+
+    try {
+        const response = await fetch('/api/generate-entities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entityType, count })
+        });
+
+        const data = await response.json();
+
+        if (data.fallback || data.error) {
+            return null;
+        }
+
+        return data.entities;
+    } catch (e) {
+        console.warn('Failed to fetch entity suggestions:', e);
+        return null;
     }
 }
 
@@ -2847,6 +2879,44 @@ function initSetupScreen() {
     document.getElementById('play-again-btn').addEventListener('click', () => {
         location.reload();
     });
+
+    // Entity suggestions button
+    const generateEntitiesBtn = document.getElementById('generate-entities-btn');
+    if (generateEntitiesBtn) {
+        generateEntitiesBtn.addEventListener('click', async () => {
+            const entityType = document.getElementById('entity-type').value;
+            const suggestionsContainer = document.getElementById('entity-suggestions');
+
+            // Show loading state
+            generateEntitiesBtn.disabled = true;
+            generateEntitiesBtn.textContent = '⏳ Generating...';
+            suggestionsContainer.innerHTML = '<div class="suggestion-loading">Generating suggestions...</div>';
+
+            const entities = await fetchEntitySuggestions(entityType, 3);
+
+            // Restore button
+            generateEntitiesBtn.disabled = false;
+            generateEntitiesBtn.textContent = '🎲 Suggest Entities';
+
+            if (entities && entities.length > 0) {
+                suggestionsContainer.innerHTML = entities.map((entity, i) =>
+                    `<button class="entity-suggestion-btn" data-entity="${i}">${entity}</button>`
+                ).join('');
+
+                // Add click handlers
+                suggestionsContainer.querySelectorAll('.entity-suggestion-btn').forEach((btn, i) => {
+                    btn.addEventListener('click', () => {
+                        document.getElementById('entity-name').value = entities[i];
+                        // Highlight selected
+                        suggestionsContainer.querySelectorAll('.entity-suggestion-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                    });
+                });
+            } else {
+                suggestionsContainer.innerHTML = '<div class="suggestion-error">Failed to generate suggestions</div>';
+            }
+        });
+    }
 }
 
 function startGame() {

@@ -48,6 +48,23 @@ Examples of additions:
 
 Generate ONLY the addition text, starting with "..." - no quotes or extra formatting.`;
 
+// System prompt for research entity suggestions
+const ENTITY_PROMPT = `You are a creative game designer suggesting mysterious research subjects for a satirical academic board game.
+Given an entity type (matter, creature, phenomenon, place, or mechanism), suggest an intriguing research subject that:
+- Is absurd but sounds like something academics might actually study
+- Has comedic potential for pseudo-scientific hypotheses
+- Is specific enough to be interesting (not too generic)
+- Could inspire humorous theories
+
+Examples by type:
+- Matter: "Quantum Cheese", "Dark Glitter", "Ethereal Socks"
+- Creature: "Procrastinating Squirrels", "Bureaucratic Dolphins", "Passive-Aggressive Fungi"
+- Phenomenon: "Collective Coffee Addiction", "Meeting-Induced Narcolepsy", "Retroactive Embarrassment"
+- Place: "The Bermuda Parking Lot", "Atlantis Community College", "The Uncanny Valley Mall"
+- Mechanism: "Karmic Accounting", "Quantum Procrastination", "Recursive Blame Shifting"
+
+Generate ONLY the entity name (2-4 words), no quotes or extra formatting.`;
+
 // Generate hypothesis using OpenAI
 async function generateWithOpenAI(entity, existingHypotheses) {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -194,6 +211,79 @@ async function generateAdditionWithGoogle(existingHypothesis) {
     return data.candidates[0].content.parts[0].text.trim();
 }
 
+// Generate entity suggestion using OpenAI
+async function generateEntityWithOpenAI(entityType) {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [
+                { role: 'system', content: ENTITY_PROMPT },
+                { role: 'user', content: `Suggest a funny research ${entityType} for a satirical academic game:` }
+            ],
+            max_tokens: 30,
+            temperature: 1.0
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.choices[0].message.content.trim();
+}
+
+// Generate entity suggestion using Anthropic Claude
+async function generateEntityWithAnthropic(entityType) {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: 30,
+            system: ENTITY_PROMPT,
+            messages: [
+                { role: 'user', content: `Suggest a funny research ${entityType} for a satirical academic game:` }
+            ]
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.content[0].text.trim();
+}
+
+// Generate entity suggestion using Google Gemini
+async function generateEntityWithGoogle(entityType) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            contents: [{
+                parts: [{
+                    text: `${ENTITY_PROMPT}\n\nSuggest a funny research ${entityType} for a satirical academic game:`
+                }]
+            }],
+            generationConfig: {
+                maxOutputTokens: 30,
+                temperature: 1.0
+            }
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.candidates[0].content.parts[0].text.trim();
+}
+
 // API endpoint to check if LLM is available
 app.get('/api/llm-status', (req, res) => {
     const llm = getAvailableLLM();
@@ -315,6 +405,43 @@ app.post('/api/generate-addition', async (req, res) => {
         }
 
         res.json({ addition, provider: llm });
+    } catch (error) {
+        console.error('LLM API error:', error);
+        res.status(500).json({
+            error: error.message,
+            fallback: true
+        });
+    }
+});
+
+// API endpoint to generate entity suggestions for game setup
+app.post('/api/generate-entities', async (req, res) => {
+    const { entityType, count = 3 } = req.body;
+    const llm = getAvailableLLM();
+
+    if (!llm) {
+        return res.status(503).json({
+            error: 'No LLM API key configured',
+            fallback: true
+        });
+    }
+
+    try {
+        // Generate multiple entity suggestions in parallel
+        const entities = await Promise.all(
+            Array(count).fill().map(async () => {
+                switch (llm) {
+                    case 'openai':
+                        return await generateEntityWithOpenAI(entityType);
+                    case 'anthropic':
+                        return await generateEntityWithAnthropic(entityType);
+                    case 'google':
+                        return await generateEntityWithGoogle(entityType);
+                }
+            })
+        );
+
+        res.json({ entities, provider: llm });
     } catch (error) {
         console.error('LLM API error:', error);
         res.status(500).json({
