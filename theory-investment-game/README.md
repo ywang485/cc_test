@@ -4,11 +4,19 @@ A Monopoly-style board game where players invest their life in establishing scie
 
 ## How to Play
 
-1. Open `index.html` in a web browser
+### Quick Start (No Server)
+1. Open `index.html` directly in a web browser
 2. Configure the entity you'll be researching (type and name)
 3. Add 2-4 players with names and colors
 4. Select a board configuration or load a custom map
 5. Click "Start Game" to begin!
+
+### With AI-Generated Hypotheses (Recommended)
+1. Copy `.env.example` to `.env` and add an API key (see LLM Setup below)
+2. Run `npm install` to install dependencies
+3. Run `npm start` to start the server
+4. Open `http://localhost:3000` in your browser
+5. The game header will show "AI: OpenAI/Claude/Gemini" when LLM is active
 
 ## Game Rules
 
@@ -86,10 +94,52 @@ See the `maps/` folder for more examples.
 
 ## Technical Details
 
-- Pure HTML/CSS/JavaScript - no dependencies
+- HTML/CSS/JavaScript frontend
+- Optional Node.js server for LLM integration
 - Pixel art styled with "Press Start 2P" font
-- Responsive design for various screen sizes
+- Responsive design with scalable board canvas
 - Single-machine multiplayer (pass-and-play)
+- AI players with configurable difficulty
+
+## LLM Setup (Optional)
+
+The game supports AI-generated hypotheses when AI players land on hypothesis spaces. This creates humorous, sarcastic pseudo-scientific hypotheses instead of using pre-written templates.
+
+### Supported Providers
+
+Only one API key is required. The game uses the first available:
+
+| Provider | Model | Environment Variable |
+|----------|-------|---------------------|
+| OpenAI | GPT-3.5 Turbo | `OPENAI_API_KEY` |
+| Anthropic | Claude 3 Haiku | `ANTHROPIC_API_KEY` |
+| Google | Gemini Pro | `GOOGLE_API_KEY` |
+
+### Configuration
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and add your API key:
+   ```
+   OPENAI_API_KEY=sk-your-key-here
+   ```
+
+3. Start the server:
+   ```bash
+   npm install
+   npm start
+   ```
+
+4. The status indicator in the game header shows whether LLM is active:
+   - "AI: OpenAI" / "AI: Claude" / "AI: Gemini" - LLM is generating hypotheses
+   - "AI: Templates" - Using fallback pre-written hypotheses
+
+### Running Without LLM
+
+The game works perfectly without any API keys. AI players will use pre-written fallback hypotheses that are still humorous and thematic. Simply open `index.html` directly in your browser.
 
 ## Files
 
@@ -97,7 +147,11 @@ See the `maps/` folder for more examples.
 theory-investment-game/
 ├── index.html          # Main game page
 ├── styles.css          # Pixel art styling
-├── game.js             # Game logic
+├── game.js             # Game logic and rendering
+├── server.js           # Express server for LLM API proxy
+├── package.json        # Node.js dependencies
+├── .env.example        # Environment variable template
+├── .gitignore          # Git ignore rules
 ├── README.md           # This file
 └── maps/               # Sample map configurations
     ├── philosophy_of_science.txt
