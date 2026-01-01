@@ -1191,6 +1191,186 @@ function parseMap(mapText) {
 }
 
 // ============================================
+// PENCIL SKETCH DRAWING HELPERS
+// ============================================
+
+// Create a seeded random number generator for consistent sketchy effects
+function seededRandom(seed) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+}
+
+// Draw a sketchy/wobbly line (pencil effect)
+function sketchyLine(ctx, x1, y1, x2, y2, seed = 0) {
+    const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+    const segments = Math.max(3, Math.floor(length / 8));
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+
+    for (let i = 1; i <= segments; i++) {
+        const t = i / segments;
+        const baseX = x1 + (x2 - x1) * t;
+        const baseY = y1 + (y2 - y1) * t;
+
+        // Add wobble perpendicular to line direction
+        const wobble = (seededRandom(seed + i * 7.3) - 0.5) * 2;
+        const angle = Math.atan2(y2 - y1, x2 - x1) + Math.PI / 2;
+        const offsetX = Math.cos(angle) * wobble;
+        const offsetY = Math.sin(angle) * wobble;
+
+        ctx.lineTo(baseX + offsetX, baseY + offsetY);
+    }
+    ctx.stroke();
+}
+
+// Draw a sketchy rounded rectangle (pencil-drawn box)
+function sketchyRoundedRect(ctx, x, y, w, h, radius, seed = 0) {
+    // Multiple passes for pencil texture
+    for (let pass = 0; pass < 2; pass++) {
+        const offset = pass * 0.5;
+        const wobbleAmt = 1.5 - pass * 0.5;
+
+        ctx.beginPath();
+
+        // Top-left corner
+        const tlWobble = (seededRandom(seed + 1) - 0.5) * wobbleAmt;
+        ctx.moveTo(x + radius + tlWobble, y + offset);
+
+        // Top edge (with wobble)
+        const topMidWobble = (seededRandom(seed + 2) - 0.5) * wobbleAmt;
+        ctx.quadraticCurveTo(
+            x + w/2, y + topMidWobble,
+            x + w - radius + (seededRandom(seed + 3) - 0.5) * wobbleAmt, y + offset
+        );
+
+        // Top-right corner
+        ctx.quadraticCurveTo(
+            x + w + offset, y + offset,
+            x + w + offset, y + radius + (seededRandom(seed + 4) - 0.5) * wobbleAmt
+        );
+
+        // Right edge
+        const rightMidWobble = (seededRandom(seed + 5) - 0.5) * wobbleAmt;
+        ctx.quadraticCurveTo(
+            x + w + rightMidWobble, y + h/2,
+            x + w + offset, y + h - radius + (seededRandom(seed + 6) - 0.5) * wobbleAmt
+        );
+
+        // Bottom-right corner
+        ctx.quadraticCurveTo(
+            x + w + offset, y + h + offset,
+            x + w - radius + (seededRandom(seed + 7) - 0.5) * wobbleAmt, y + h + offset
+        );
+
+        // Bottom edge
+        const bottomMidWobble = (seededRandom(seed + 8) - 0.5) * wobbleAmt;
+        ctx.quadraticCurveTo(
+            x + w/2, y + h + bottomMidWobble,
+            x + radius + (seededRandom(seed + 9) - 0.5) * wobbleAmt, y + h + offset
+        );
+
+        // Bottom-left corner
+        ctx.quadraticCurveTo(
+            x + offset, y + h + offset,
+            x + offset, y + h - radius + (seededRandom(seed + 10) - 0.5) * wobbleAmt
+        );
+
+        // Left edge
+        const leftMidWobble = (seededRandom(seed + 11) - 0.5) * wobbleAmt;
+        ctx.quadraticCurveTo(
+            x + leftMidWobble, y + h/2,
+            x + offset, y + radius + (seededRandom(seed + 12) - 0.5) * wobbleAmt
+        );
+
+        // Back to top-left corner
+        ctx.quadraticCurveTo(
+            x + offset, y + offset,
+            x + radius + tlWobble, y + offset
+        );
+
+        ctx.closePath();
+    }
+}
+
+// Draw pencil shading/hatching
+function drawPencilShading(ctx, x, y, w, h, intensity = 0.15, seed = 0) {
+    ctx.save();
+    ctx.globalAlpha = intensity;
+    ctx.strokeStyle = '#2c3e50';
+    ctx.lineWidth = 0.5;
+
+    // Diagonal hatching lines
+    const spacing = 4;
+    const angle = Math.PI / 4; // 45 degrees
+
+    ctx.beginPath();
+    for (let i = -h; i < w + h; i += spacing) {
+        const wobble = (seededRandom(seed + i) - 0.5) * 1;
+        const startX = x + i + wobble;
+        const startY = y;
+        const endX = x + i - h + wobble;
+        const endY = y + h;
+
+        // Clip to rectangle bounds
+        let sx = startX, sy = startY, ex = endX, ey = endY;
+
+        if (sx < x) {
+            sy = startY + (x - startX);
+            sx = x;
+        }
+        if (ex < x) {
+            ey = endY - (x - endX);
+            ex = x;
+        }
+        if (sx > x + w) {
+            sy = startY + (sx - (x + w));
+            sx = x + w;
+        }
+        if (ey > y + h) {
+            ex = endX + (ey - (y + h));
+            ey = y + h;
+        }
+
+        if (sx >= x && sx <= x + w && ex >= x && ex <= x + w &&
+            sy >= y && sy <= y + h && ey >= y && ey <= y + h) {
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(ex, ey);
+        }
+    }
+    ctx.stroke();
+    ctx.restore();
+}
+
+// Draw pencil scribble fill effect
+function drawScribbleFill(ctx, x, y, w, h, color, seed = 0) {
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+
+    // Draw a few scribble loops
+    const numScribbles = 3;
+    for (let s = 0; s < numScribbles; s++) {
+        ctx.beginPath();
+        const startX = x + w * 0.2 + seededRandom(seed + s * 10) * w * 0.6;
+        const startY = y + h * 0.2 + seededRandom(seed + s * 10 + 1) * h * 0.6;
+        ctx.moveTo(startX, startY);
+
+        for (let i = 0; i < 8; i++) {
+            const nextX = x + w * 0.15 + seededRandom(seed + s * 10 + i * 2 + 2) * w * 0.7;
+            const nextY = y + h * 0.15 + seededRandom(seed + s * 10 + i * 2 + 3) * h * 0.7;
+            const cpX = x + seededRandom(seed + s * 10 + i * 2 + 4) * w;
+            const cpY = y + seededRandom(seed + s * 10 + i * 2 + 5) * h;
+            ctx.quadraticCurveTo(cpX, cpY, nextX, nextY);
+        }
+        ctx.stroke();
+    }
+    ctx.restore();
+}
+
+// ============================================
 // PIXEL ART ICONS
 // ============================================
 function drawSpaceIcon(ctx, type, x, y, size, isProven = false) {
@@ -1834,26 +2014,34 @@ function renderBoard() {
         ctx.restore();
     });
 
-    // Draw sketchy hand-drawn border
-    ctx.strokeStyle = '#7f8c8d';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([]);
-    // Slightly wobbly rectangle
-    ctx.beginPath();
-    ctx.moveTo(10, 12);
-    ctx.lineTo(logicalBoardWidth - 12, 10);
-    ctx.lineTo(logicalBoardWidth - 10, logicalBoardHeight - 12);
-    ctx.lineTo(12, logicalBoardHeight - 10);
-    ctx.closePath();
-    ctx.stroke();
+    // Draw sketchy hand-drawn border with multiple pencil passes
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
-    // Red margin line (like notebook)
-    ctx.strokeStyle = 'rgba(229, 115, 115, 0.4)';
+    // First pass - main border
+    ctx.strokeStyle = 'rgba(127, 140, 141, 0.6)';
     ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(padding - 5, 5);
-    ctx.lineTo(padding - 5, logicalBoardHeight - 5);
-    ctx.stroke();
+    sketchyLine(ctx, 10, 12, logicalBoardWidth - 12, 10, 1001);
+    sketchyLine(ctx, logicalBoardWidth - 12, 10, logicalBoardWidth - 10, logicalBoardHeight - 12, 1002);
+    sketchyLine(ctx, logicalBoardWidth - 10, logicalBoardHeight - 12, 12, logicalBoardHeight - 10, 1003);
+    sketchyLine(ctx, 12, logicalBoardHeight - 10, 10, 12, 1004);
+
+    // Second pass - offset for pencil texture
+    ctx.strokeStyle = 'rgba(127, 140, 141, 0.3)';
+    ctx.lineWidth = 1;
+    sketchyLine(ctx, 11, 11, logicalBoardWidth - 11, 11, 1011);
+    sketchyLine(ctx, logicalBoardWidth - 11, 11, logicalBoardWidth - 11, logicalBoardHeight - 11, 1012);
+    sketchyLine(ctx, logicalBoardWidth - 11, logicalBoardHeight - 11, 11, logicalBoardHeight - 11, 1013);
+    sketchyLine(ctx, 11, logicalBoardHeight - 11, 11, 11, 1014);
+
+    // Red margin line (like notebook) - with sketchy effect
+    ctx.strokeStyle = 'rgba(229, 115, 115, 0.5)';
+    ctx.lineWidth = 1.5;
+    sketchyLine(ctx, padding - 5, 5, padding - 5, logicalBoardHeight - 5, 2001);
+    // Second pass for pencil texture
+    ctx.strokeStyle = 'rgba(229, 115, 115, 0.2)';
+    ctx.lineWidth = 1;
+    sketchyLine(ctx, padding - 4, 6, padding - 4, logicalBoardHeight - 6, 2002);
 
     // Calculate positions for each space (going clockwise)
     const positions = [];
@@ -1889,7 +2077,7 @@ function renderBoard() {
     GameState.boardPositions = positions;
     GameState.boardSpaceSize = spaceSize;
 
-    // Draw spaces with sketchy rounded corners
+    // Draw spaces with pencil-sketch style
     board.forEach((space, i) => {
         const pos = positions[i];
         if (!pos) return;
@@ -1905,56 +2093,83 @@ function renderBoard() {
             }
         }
 
-        // Draw space with rounded corners (notebook style)
-        const radius = 6;
+        // Draw space with sketchy pencil-drawn style
+        const radius = 5;
         const w = spaceSize - 4;
         const h = spaceSize - 4;
-        const x = pos.x + 1;
-        const y = pos.y + 1;
+        const x = pos.x + 2;
+        const y = pos.y + 2;
+        const seed = i * 100; // Unique seed per space for consistent randomness
 
-        // Fill with color
+        // Draw paper/card background with slight texture
+        ctx.save();
+
+        // Base fill with sketchy rounded rect path
+        sketchyRoundedRect(ctx, x, y, w, h, radius, seed);
         ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + w - radius, y);
-        ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
-        ctx.lineTo(x + w, y + h - radius);
-        ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
-        ctx.lineTo(x + radius, y + h);
-        ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
         ctx.fill();
 
-        // Draw sketchy border
-        ctx.strokeStyle = 'rgba(44, 62, 80, 0.6)';
-        ctx.lineWidth = 1.5;
+        // Add pencil shading for depth (darker in bottom-right)
+        drawPencilShading(ctx, x + w * 0.5, y + h * 0.5, w * 0.5, h * 0.5, 0.1, seed + 50);
+
+        // Add light scribble texture overlay
+        if (space.type !== SPACE_TYPES.START) {
+            drawScribbleFill(ctx, x + 2, y + 2, w - 4, h - 4, 'rgba(255,255,255,0.5)', seed + 100);
+        }
+
+        // Draw multiple pencil stroke borders for hand-drawn effect
+        ctx.lineWidth = 1.2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // First pass - main border (darker)
+        sketchyRoundedRect(ctx, x, y, w, h, radius, seed);
+        ctx.strokeStyle = 'rgba(44, 62, 80, 0.7)';
         ctx.stroke();
+
+        // Second pass - slightly offset for pencil texture
+        sketchyRoundedRect(ctx, x + 0.3, y + 0.3, w, h, radius, seed + 20);
+        ctx.strokeStyle = 'rgba(44, 62, 80, 0.3)';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        ctx.restore();
 
         // Draw extra border for hypothesis spaces with content
         if (space.hypothesis) {
+            ctx.save();
             ctx.strokeStyle = space.isProven ? '#27ae60' : '#e67e22';
             ctx.lineWidth = 2.5;
             ctx.setLineDash([4, 2]);
+            sketchyRoundedRect(ctx, x - 1, y - 1, w + 2, h + 2, radius + 1, seed + 30);
             ctx.stroke();
             ctx.setLineDash([]);
+            ctx.restore();
         }
 
         // Draw space type icon (hand-drawn style)
         drawSpaceIcon(ctx, space.type, pos.x, pos.y, spaceSize - 2, space.isProven);
 
-        // Draw investment cost for hypothesis (pixel font)
+        // Draw investment cost for hypothesis (pixel font with hand-drawn underline)
         if (space.type === SPACE_TYPES.HYPOTHESIS && space.investmentCost > 0) {
             ctx.fillStyle = '#2c3e50';
             ctx.font = '7px "Press Start 2P", monospace';
             ctx.textAlign = 'center';
-            ctx.fillText(space.investmentCost + 'y', pos.x + spaceSize/2, pos.y + spaceSize - 6);
+            const costText = space.investmentCost + 'y';
+            const textX = pos.x + spaceSize/2;
+            const textY = pos.y + spaceSize - 6;
+            ctx.fillText(costText, textX, textY);
+
+            // Add sketchy underline
+            ctx.strokeStyle = 'rgba(44, 62, 80, 0.4)';
+            ctx.lineWidth = 1;
+            sketchyLine(ctx, textX - 12, textY + 2, textX + 12, textY + 2, seed + 200);
+
             ctx.textAlign = 'left';
         }
     });
 
-    // Draw players (sketchy circle tokens)
+    // Draw players (pencil-sketch circle tokens)
     GameState.players.forEach((player, pIndex) => {
         if (!player.isAlive) return;
 
@@ -1968,33 +2183,76 @@ function renderBoard() {
 
         const drawX = basePos.x + offsetX;
         const drawY = basePos.y + offsetY;
+        const tokenSeed = pIndex * 500 + 1000;
 
         // Draw shadow when bouncing
         if (animPos && GameState.animation.bounceHeight > 0) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
             ctx.beginPath();
             ctx.ellipse(drawX, basePos.y + offsetY + GameState.animation.bounceHeight * 0.3,
                        9, 4, 0, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // Player token (sketchy filled circle)
+        // Draw sketchy circle token with multiple passes
+        ctx.save();
+
+        // Main fill
         ctx.fillStyle = player.color;
         ctx.beginPath();
-        ctx.arc(drawX, drawY, 9, 0, Math.PI * 2);
+        // Draw slightly wobbly circle
+        for (let angle = 0; angle <= Math.PI * 2; angle += 0.2) {
+            const wobble = (seededRandom(tokenSeed + angle * 10) - 0.5) * 1.5;
+            const r = 9 + wobble;
+            const px = drawX + Math.cos(angle) * r;
+            const py = drawY + Math.sin(angle) * r;
+            if (angle === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
         ctx.fill();
 
-        // Sketchy outline
-        ctx.strokeStyle = '#2c3e50';
-        ctx.lineWidth = 2;
+        // Multiple pencil stroke outlines
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+
+        // First outline pass
+        ctx.strokeStyle = 'rgba(44, 62, 80, 0.8)';
+        ctx.beginPath();
+        for (let angle = 0; angle <= Math.PI * 2; angle += 0.15) {
+            const wobble = (seededRandom(tokenSeed + angle * 10) - 0.5) * 1.2;
+            const r = 9 + wobble;
+            const px = drawX + Math.cos(angle) * r;
+            const py = drawY + Math.sin(angle) * r;
+            if (angle === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
         ctx.stroke();
 
-        // Inner highlight
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        // Second outline pass (offset for texture)
+        ctx.strokeStyle = 'rgba(44, 62, 80, 0.3)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(drawX - 2, drawY - 2, 4, 0, Math.PI * 2);
+        for (let angle = 0; angle <= Math.PI * 2; angle += 0.2) {
+            const wobble = (seededRandom(tokenSeed + 50 + angle * 10) - 0.5) * 1;
+            const r = 9.5 + wobble;
+            const px = drawX + Math.cos(angle) * r;
+            const py = drawY + Math.sin(angle) * r;
+            if (angle === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
         ctx.stroke();
+
+        // Inner pencil highlight scribble
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(drawX - 2, drawY - 2, 3, Math.PI * 0.8, Math.PI * 1.8);
+        ctx.stroke();
+
+        ctx.restore();
 
         // Player number (pixel style)
         ctx.fillStyle = '#fff';
@@ -2005,36 +2263,67 @@ function renderBoard() {
         ctx.textBaseline = 'alphabetic';
     });
 
-    // Draw NPC (Scientific Underdeterminism - sketchy question mark shape)
+    // Draw NPC (Scientific Underdeterminism - pencil-sketch diamond shape)
     const animNpcPos = getAnimatedPosition('npc', null, positions, spaceSize);
     const npcBasePos = animNpcPos || positions[GameState.npc.position];
     if (npcBasePos) {
         const npcX = npcBasePos.x + spaceSize/2;
         const npcY = npcBasePos.y + spaceSize/2;
+        const npcSeed = 9999;
 
         // Draw shadow when bouncing
         if (animNpcPos && GameState.animation.bounceHeight > 0) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
             ctx.beginPath();
             ctx.ellipse(npcX, positions[GameState.animation.currentPos].y + spaceSize/2 + 8 + GameState.animation.bounceHeight * 0.3,
                        11, 5, 0, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // NPC token (purple diamond/question shape)
+        ctx.save();
+
+        // Helper to draw wobbly diamond
+        const drawWobbyDiamond = (offsetScale, seed) => {
+            const w1 = (seededRandom(seed) - 0.5) * offsetScale;
+            const w2 = (seededRandom(seed + 1) - 0.5) * offsetScale;
+            const w3 = (seededRandom(seed + 2) - 0.5) * offsetScale;
+            const w4 = (seededRandom(seed + 3) - 0.5) * offsetScale;
+            ctx.beginPath();
+            ctx.moveTo(npcX + w1, npcY - 12 + w2);
+            ctx.lineTo(npcX + 10 + w3, npcY + w4);
+            ctx.lineTo(npcX + w2, npcY + 12 + w1);
+            ctx.lineTo(npcX - 10 + w4, npcY + w3);
+            ctx.closePath();
+        };
+
+        // NPC token fill (purple diamond)
         ctx.fillStyle = '#9b59b6';
-        ctx.beginPath();
-        ctx.moveTo(npcX, npcY - 12);
-        ctx.lineTo(npcX + 10, npcY);
-        ctx.lineTo(npcX, npcY + 12);
-        ctx.lineTo(npcX - 10, npcY);
-        ctx.closePath();
+        drawWobbyDiamond(1.5, npcSeed);
         ctx.fill();
 
-        // Sketchy outline
-        ctx.strokeStyle = '#2c3e50';
-        ctx.lineWidth = 2;
+        // Add pencil cross-hatching for texture
+        ctx.save();
+        ctx.clip();
+        drawPencilShading(ctx, npcX - 10, npcY - 12, 20, 24, 0.12, npcSeed + 100);
+        ctx.restore();
+
+        // Multiple pencil stroke outlines
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // First outline
+        ctx.strokeStyle = 'rgba(44, 62, 80, 0.8)';
+        drawWobbyDiamond(1.2, npcSeed);
         ctx.stroke();
+
+        // Second outline (offset)
+        ctx.strokeStyle = 'rgba(44, 62, 80, 0.3)';
+        ctx.lineWidth = 1;
+        drawWobbyDiamond(1.5, npcSeed + 50);
+        ctx.stroke();
+
+        ctx.restore();
 
         // Question mark inside (pixel style)
         ctx.fillStyle = '#fff';
