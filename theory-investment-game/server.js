@@ -50,7 +50,7 @@ Generate ONLY the addition text, starting with "..." - no quotes or extra format
 
 // System prompt for research entity suggestions
 const ENTITY_PROMPT = `You are a creative game designer suggesting mysterious research subjects for a satirical academic board game.
-Given an entity type (matter, creature, phenomenon, place, or mechanism), suggest an intriguing research subject that:
+Given an entity type (matter, creature, phenomenon, place, mechanism, or explanation), suggest an intriguing research subject that:
 - Is absurd but sounds like something academics might actually study
 - Has comedic potential for pseudo-scientific hypotheses
 - Is specific enough to be interesting (not too generic)
@@ -62,8 +62,9 @@ Examples by type:
 - Phenomenon: "Collective Coffee Addiction", "Meeting-Induced Narcolepsy", "Retroactive Embarrassment"
 - Place: "The Bermuda Parking Lot", "Atlantis Community College", "The Uncanny Valley Mall"
 - Mechanism: "Karmic Accounting", "Quantum Procrastination", "Recursive Blame Shifting"
+- Explanation: "Why I Always Lose My Car in Parking Lots", "Why Other People Look More Successful Than Me", "Why the Other Line Always Moves Faster", "Why I Can Never Remember Names", "Why Socks Disappear in the Laundry"
 
-Generate ONLY the entity name (2-4 words), no quotes or extra formatting.`;
+Generate ONLY the entity name (2-8 words for explanations, 2-4 words for others), no quotes or extra formatting.`;
 
 // System prompt for generating integrated final theory
 const THEORY_PROMPT = `You are a pompous academic narrator announcing the culmination of groundbreaking research.
