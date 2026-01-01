@@ -52,7 +52,8 @@
     --line-red: #e57373;
     --dot-gray: #bdc3c7;
 
-    /* Fonts */
+    /* Fonts - Hybrid: Pixel art + Handwriting */
+    --font-pixel: 'Press Start 2P', monospace;
     --font-title: 'Permanent Marker', cursive;
     --font-handwriting: 'Patrick Hand', cursive;
     --font-notes: 'Indie Flower', cursive;
@@ -224,18 +225,21 @@ body {
 }
 
 /* ============================================
-   HAND-DRAWN TITLE
+   HYBRID TITLE - Pixel Art on Notebook
    ============================================ */
 
 .hand-title {
-    font-family: var(--font-title);
-    font-size: 32px;
+    font-family: var(--font-pixel);
+    font-size: 18px;
     text-align: center;
-    color: var(--ink-blue);
-    margin-bottom: 10px;
-    letter-spacing: 2px;
+    color: var(--pencil-blue);
+    margin-bottom: 15px;
+    letter-spacing: 1px;
     position: relative;
-    transform: rotate(-1deg);
+    text-shadow:
+        3px 3px 0 var(--pencil-purple),
+        -1px -1px 0 var(--paper-white);
+    image-rendering: pixelated;
 }
 
 .title-underline {
@@ -246,12 +250,12 @@ body {
 .title-underline::after {
     content: '';
     position: absolute;
-    bottom: -5px;
-    left: -10px;
-    right: -10px;
-    height: 8px;
+    bottom: -8px;
+    left: -15px;
+    right: -15px;
+    height: 10px;
     background: var(--highlight-yellow);
-    transform: rotate(0.5deg) skewX(-5deg);
+    transform: rotate(0.5deg) skewX(-3deg);
     z-index: -1;
 }
 
@@ -317,12 +321,13 @@ body {
 }
 
 .sticky-note h2 {
-    font-family: var(--font-title);
-    font-size: 16px;
+    font-family: var(--font-pixel);
+    font-size: 10px;
     color: var(--ink-dark);
     margin-bottom: 15px;
     border-bottom: 2px dashed rgba(0,0,0,0.2);
     padding-bottom: 10px;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
 }
 
 /* ============================================
@@ -352,12 +357,13 @@ body {
 }
 
 .side-sticky h3 {
-    font-family: var(--font-title);
-    font-size: 13px;
+    font-family: var(--font-pixel);
+    font-size: 8px;
     color: var(--ink-dark);
     margin-bottom: 12px;
     padding-bottom: 8px;
     border-bottom: 2px dashed rgba(0,0,0,0.15);
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
 }
 
 /* Fold corner effect */
@@ -709,22 +715,23 @@ select {
 }
 
 /* ============================================
-   SKETCH BUTTONS (Main Interactive Buttons)
+   HYBRID BUTTONS - Pixel Art on Notebook Paper
    ============================================ */
 
 .sketch-btn {
-    font-family: var(--font-handwriting);
-    font-size: 16px;
-    padding: 12px 24px;
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    padding: 12px 20px;
     background: var(--paper-white);
     color: var(--ink-black);
     border: 3px solid var(--ink-dark);
-    border-radius: 3px;
+    border-radius: 0;
     cursor: pointer;
     position: relative;
-    transition: all 0.15s ease;
-    box-shadow: 3px 3px 0 var(--ink-dark);
-    transform: rotate(-0.5deg);
+    transition: all 0.1s ease;
+    box-shadow: 4px 4px 0 var(--ink-dark);
+    text-transform: uppercase;
+    image-rendering: pixelated;
 }
 
 .sketch-btn::before {
@@ -735,37 +742,35 @@ select {
     right: -2px;
     bottom: -2px;
     border: 2px solid transparent;
-    border-radius: 5px;
     transition: border-color 0.2s ease;
 }
 
 .sketch-btn:hover {
-    transform: rotate(0deg) translateY(-2px);
-    box-shadow: 4px 5px 0 var(--ink-dark);
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--ink-dark);
     background: var(--sticky-yellow);
 }
 
 .sketch-btn:active {
-    transform: rotate(0deg) translateY(2px);
-    box-shadow: 1px 1px 0 var(--ink-dark);
+    transform: translate(4px, 4px);
+    box-shadow: none;
 }
 
 .sketch-btn.large {
-    font-family: var(--font-title);
-    font-size: 20px;
-    padding: 18px 40px;
+    font-family: var(--font-pixel);
+    font-size: 12px;
+    padding: 16px 32px;
     width: 100%;
     margin-top: 25px;
     background: var(--sticky-green);
     border-color: var(--pencil-green);
-    box-shadow: 4px 4px 0 var(--pencil-green);
-    transform: rotate(0deg);
+    box-shadow: 5px 5px 0 var(--pencil-green);
 }
 
 .sketch-btn.large:hover {
     background: #a5d6a7;
-    transform: translateY(-3px);
-    box-shadow: 5px 7px 0 var(--pencil-green);
+    transform: translate(2px, 2px);
+    box-shadow: 3px 3px 0 var(--pencil-green);
 }
 
 .sketch-btn:disabled {
@@ -774,21 +779,22 @@ select {
     color: var(--ink-light);
     cursor: not-allowed;
     transform: none;
-    box-shadow: 2px 2px 0 var(--ink-light);
+    box-shadow: 4px 4px 0 var(--ink-light);
+    opacity: 0.7;
 }
 
 .suggest-btn {
-    font-size: 14px;
-    padding: 8px 16px;
+    font-size: 8px;
+    padding: 10px 14px;
     margin-bottom: 12px;
 }
 
 .roll-btn {
-    font-size: 18px;
-    padding: 15px 30px;
+    font-size: 12px;
+    padding: 14px 28px;
     background: var(--sticky-orange);
     border-color: var(--pencil-orange);
-    box-shadow: 3px 3px 0 var(--pencil-orange);
+    box-shadow: 4px 4px 0 var(--pencil-orange);
 }
 
 .roll-btn:hover {
@@ -958,8 +964,8 @@ select {
 }
 
 .player-stat .name {
-    font-family: var(--font-title);
-    font-size: 14px;
+    font-family: var(--font-pixel);
+    font-size: 8px;
     margin-bottom: 6px;
     color: var(--ink-dark);
 }
@@ -1193,21 +1199,22 @@ select {
 }
 
 #modal-title {
-    font-family: var(--font-title);
-    font-size: 20px;
+    font-family: var(--font-pixel);
+    font-size: 12px;
     color: var(--pencil-blue);
     margin-bottom: 20px;
     text-align: center;
     position: relative;
+    text-shadow: 2px 2px 0 var(--pencil-purple);
 }
 
 #modal-title::after {
     content: '';
     position: absolute;
-    bottom: -5px;
-    left: 20%;
-    right: 20%;
-    height: 3px;
+    bottom: -8px;
+    left: 15%;
+    right: 15%;
+    height: 4px;
     background: var(--highlight-yellow);
 }
 
@@ -1468,9 +1475,12 @@ select {
 }
 
 #gameover-screen .hand-title {
-    font-size: 36px;
+    font-size: 24px;
     color: var(--pencil-red);
     margin-bottom: 25px;
+    text-shadow:
+        4px 4px 0 var(--pencil-orange),
+        -1px -1px 0 var(--paper-white);
 }
 
 /* Winner Display */
@@ -1492,9 +1502,10 @@ select {
 }
 
 #winner-display .winner-name {
-    font-family: var(--font-title);
-    font-size: 28px;
+    font-family: var(--font-pixel);
+    font-size: 16px;
     animation: winnerPulse 1s infinite;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
 }
 
 .winner-fame {
@@ -1538,11 +1549,11 @@ select {
 }
 
 .revelation-title {
-    font-family: var(--font-title);
-    font-size: 18px;
+    font-family: var(--font-pixel);
+    font-size: 11px;
     color: var(--pencil-purple);
     margin-bottom: 20px;
-    text-shadow: 1px 1px 0 var(--paper-white);
+    text-shadow: 2px 2px 0 var(--pencil-pink);
 }
 
 .theory-entity {
@@ -1764,12 +1775,13 @@ select {
 }
 
 .board-tooltip .tooltip-title {
-    font-family: var(--font-title);
-    font-size: 14px;
+    font-family: var(--font-pixel);
+    font-size: 9px;
     color: var(--pencil-blue);
     margin-bottom: 8px;
     padding-bottom: 6px;
     border-bottom: 2px dashed var(--paper-shadow);
+    text-shadow: 1px 1px 0 var(--paper-shadow);
 }
 
 .board-tooltip .tooltip-type {

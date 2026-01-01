@@ -1944,12 +1944,12 @@ function renderBoard() {
         // Draw space type icon (hand-drawn style)
         drawSpaceIcon(ctx, space.type, pos.x, pos.y, spaceSize - 2, space.isProven);
 
-        // Draw investment cost for hypothesis (handwriting font)
+        // Draw investment cost for hypothesis (pixel font)
         if (space.type === SPACE_TYPES.HYPOTHESIS && space.investmentCost > 0) {
             ctx.fillStyle = '#2c3e50';
-            ctx.font = 'bold 11px "Patrick Hand", cursive';
+            ctx.font = '7px "Press Start 2P", monospace';
             ctx.textAlign = 'center';
-            ctx.fillText(space.investmentCost + 'yr', pos.x + spaceSize/2, pos.y + spaceSize - 6);
+            ctx.fillText(space.investmentCost + 'y', pos.x + spaceSize/2, pos.y + spaceSize - 6);
             ctx.textAlign = 'left';
         }
     });
@@ -1996,9 +1996,9 @@ function renderBoard() {
         ctx.arc(drawX - 2, drawY - 2, 4, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Player number (handwriting style)
+        // Player number (pixel style)
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 10px "Patrick Hand", cursive';
+        ctx.font = '6px "Press Start 2P", monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText((pIndex + 1).toString(), drawX, drawY + 1);
@@ -2036,9 +2036,9 @@ function renderBoard() {
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Question mark inside
+        // Question mark inside (pixel style)
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px "Permanent Marker", cursive';
+        ctx.font = '8px "Press Start 2P", monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('?', npcX, npcY + 1);
