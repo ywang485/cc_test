@@ -95,8 +95,29 @@ Examples of the tone:
 
 Generate ONLY the review comment, no quotes or formatting.`;
 
+// Build the user prompt for hypothesis generation
+function buildHypothesisPrompt(entity, existingHypotheses, provenHypotheses = []) {
+    let prompt = `Generate a humorous pseudo-scientific hypothesis about "${entity}".`;
+
+    // If there are proven hypotheses, encourage building upon them
+    if (provenHypotheses.length > 0) {
+        prompt += `\n\nIMPORTANT: The following hypotheses have already been "proven" by the scientific community. Your new hypothesis should reference, build upon, or be inspired by one or more of these established findings:\n`;
+        provenHypotheses.forEach((h, i) => {
+            prompt += `- "${h}"\n`;
+        });
+        prompt += `\nYour hypothesis should connect to or extend these proven theories in an absurd way.`;
+    }
+
+    // Avoid repeating existing hypotheses
+    if (existingHypotheses.length > 0) {
+        prompt += `\n\nExisting hypotheses to avoid repeating: ${existingHypotheses.join('; ')}`;
+    }
+
+    return prompt;
+}
+
 // Generate hypothesis using OpenAI
-async function generateWithOpenAI(entity, existingHypotheses) {
+async function generateWithOpenAI(entity, existingHypotheses, provenHypotheses = []) {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -107,7 +128,7 @@ async function generateWithOpenAI(entity, existingHypotheses) {
             model: 'gpt-3.5-turbo',
             messages: [
                 { role: 'system', content: SYSTEM_PROMPT },
-                { role: 'user', content: `Generate a humorous pseudo-scientific hypothesis about "${entity}". ${existingHypotheses.length > 0 ? `Existing hypotheses to avoid repeating: ${existingHypotheses.join('; ')}` : ''}` }
+                { role: 'user', content: buildHypothesisPrompt(entity, existingHypotheses, provenHypotheses) }
             ],
             max_tokens: 150,
             temperature: 0.9
@@ -120,7 +141,7 @@ async function generateWithOpenAI(entity, existingHypotheses) {
 }
 
 // Generate hypothesis using Anthropic Claude
-async function generateWithAnthropic(entity, existingHypotheses) {
+async function generateWithAnthropic(entity, existingHypotheses, provenHypotheses = []) {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -133,7 +154,7 @@ async function generateWithAnthropic(entity, existingHypotheses) {
             max_tokens: 150,
             system: SYSTEM_PROMPT,
             messages: [
-                { role: 'user', content: `Generate a humorous pseudo-scientific hypothesis about "${entity}". ${existingHypotheses.length > 0 ? `Existing hypotheses to avoid repeating: ${existingHypotheses.join('; ')}` : ''}` }
+                { role: 'user', content: buildHypothesisPrompt(entity, existingHypotheses, provenHypotheses) }
             ]
         })
     });
@@ -144,7 +165,7 @@ async function generateWithAnthropic(entity, existingHypotheses) {
 }
 
 // Generate hypothesis using Google Gemini
-async function generateWithGoogle(entity, existingHypotheses) {
+async function generateWithGoogle(entity, existingHypotheses, provenHypotheses = []) {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
         method: 'POST',
         headers: {
@@ -153,7 +174,7 @@ async function generateWithGoogle(entity, existingHypotheses) {
         body: JSON.stringify({
             contents: [{
                 parts: [{
-                    text: `${SYSTEM_PROMPT}\n\nGenerate a humorous pseudo-scientific hypothesis about "${entity}". ${existingHypotheses.length > 0 ? `Existing hypotheses to avoid repeating: ${existingHypotheses.join('; ')}` : ''}`
+                    text: `${SYSTEM_PROMPT}\n\n${buildHypothesisPrompt(entity, existingHypotheses, provenHypotheses)}`
                 }]
             }],
             generationConfig: {
@@ -334,7 +355,7 @@ app.get('/api/llm-status', (req, res) => {
 
 // API endpoint to generate hypothesis
 app.post('/api/generate-hypothesis', async (req, res) => {
-    const { entity, existingHypotheses = [] } = req.body;
+    const { entity, existingHypotheses = [], provenHypotheses = [] } = req.body;
     const llm = getAvailableLLM();
 
     if (!llm) {
@@ -349,13 +370,13 @@ app.post('/api/generate-hypothesis', async (req, res) => {
 
         switch (llm) {
             case 'openai':
-                hypothesis = await generateWithOpenAI(entity, existingHypotheses);
+                hypothesis = await generateWithOpenAI(entity, existingHypotheses, provenHypotheses);
                 break;
             case 'anthropic':
-                hypothesis = await generateWithAnthropic(entity, existingHypotheses);
+                hypothesis = await generateWithAnthropic(entity, existingHypotheses, provenHypotheses);
                 break;
             case 'google':
-                hypothesis = await generateWithGoogle(entity, existingHypotheses);
+                hypothesis = await generateWithGoogle(entity, existingHypotheses, provenHypotheses);
                 break;
         }
 

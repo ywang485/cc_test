@@ -741,12 +741,19 @@ async function generateLLMHypothesis() {
             .filter(s => s.hypothesis)
             .map(s => s.hypothesis);
 
+        // Collect proven hypotheses to build upon
+        const provenHypotheses = GameState.board
+            .filter(s => s.hypothesis && s.isProven)
+            .map(s => s.hypothesis);
+
         const response = await fetch('/api/generate-hypothesis', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 entity: GameState.entity.name,
-                existingHypotheses
+                entityType: GameState.entity.type,
+                existingHypotheses,
+                provenHypotheses
             })
         });
 
