@@ -4,126 +4,180 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Theory Investment Game</title>
+    <!-- Hand-drawn style fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Caveat:wght@400;600;700&family=Indie+Flower&family=Patrick+Hand&family=Permanent+Marker&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Paper texture overlay -->
+    <div class="paper-texture"></div>
+
+    <!-- Decorative formula doodles (background) -->
+    <div class="formula-doodles">
+        <span class="formula f1">E = mc²</span>
+        <span class="formula f2">∫∂x</span>
+        <span class="formula f3">Σ(n²)</span>
+        <span class="formula f4">λ = h/p</span>
+        <span class="formula f5">∇ × B</span>
+        <span class="formula f6">ψ(x,t)</span>
+        <span class="formula f7">∂²u/∂t²</span>
+        <span class="formula f8">lim x→∞</span>
+        <span class="formula f9">∮ F·dr</span>
+        <span class="formula f10">P(A|B)</span>
+        <span class="formula f11">∆G = ∆H</span>
+        <span class="formula f12">F = ma</span>
+    </div>
+
     <div id="game-container">
         <!-- Setup Screen -->
-        <div id="setup-screen" class="screen">
-            <h1 class="pixel-title">THEORY INVESTMENT GAME</h1>
-            <p class="subtitle">Invest your life in establishing theories!</p>
-
-            <div class="setup-section">
-                <h2>Entity Configuration</h2>
-                <div class="input-group">
-                    <label for="entity-type">Entity Type:</label>
-                    <select id="entity-type">
-                        <option value="matter">Matter</option>
-                        <option value="creature">Creature</option>
-                        <option value="phenomenon">Social Phenomenon</option>
-                        <option value="place">Place</option>
-                        <option value="mechanism">Mechanism</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label for="entity-name">Entity Name:</label>
-                    <input type="text" id="entity-name" placeholder="e.g., Dark Matter, Bigfoot...">
-                </div>
-                <div id="entity-suggestions-container" class="entity-suggestions-container" style="display: none;">
-                    <button id="generate-entities-btn" class="pixel-btn suggest-btn">🎲 Suggest Entities</button>
-                    <div id="entity-suggestions" class="entity-suggestions"></div>
-                </div>
+        <div id="setup-screen" class="screen notebook-page">
+            <!-- Spiral binding decoration -->
+            <div class="spiral-binding">
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
             </div>
 
-            <div class="setup-section">
-                <h2>Players (2-4)</h2>
-                <div id="player-inputs">
-                    <div class="player-input">
-                        <input type="text" class="player-name" placeholder="Player 1 Name" value="Dr. Hypothesis">
-                        <input type="color" class="player-color" value="#ff6b6b">
-                        <label class="ai-toggle"><input type="checkbox" class="player-ai"> AI</label>
+            <div class="page-content">
+                <h1 class="hand-title">
+                    <span class="title-underline">Theory Investment Game</span>
+                </h1>
+                <p class="subtitle">✏️ Invest your life in establishing theories! 📚</p>
+
+                <!-- Decorative tape -->
+                <div class="tape tape-1"></div>
+
+                <div class="setup-section sticky-note yellow">
+                    <div class="pushpin"></div>
+                    <h2>🔬 Entity Configuration</h2>
+                    <div class="input-group">
+                        <label for="entity-type">What are we studying?</label>
+                        <select id="entity-type">
+                            <option value="matter">Matter</option>
+                            <option value="creature">Creature</option>
+                            <option value="phenomenon">Social Phenomenon</option>
+                            <option value="place">Place</option>
+                            <option value="mechanism">Mechanism</option>
+                        </select>
                     </div>
-                    <div class="player-input">
-                        <input type="text" class="player-name" placeholder="Player 2 Name" value="Prof. Theory">
-                        <input type="color" class="player-color" value="#4ecdc4">
-                        <label class="ai-toggle"><input type="checkbox" class="player-ai" checked> AI</label>
+                    <div class="input-group">
+                        <label for="entity-name">Entity Name:</label>
+                        <input type="text" id="entity-name" placeholder="e.g., Dark Matter, Bigfoot...">
+                    </div>
+                    <div id="entity-suggestions-container" class="entity-suggestions-container" style="display: none;">
+                        <button id="generate-entities-btn" class="sketch-btn suggest-btn">🎲 Suggest Entities</button>
+                        <div id="entity-suggestions" class="entity-suggestions"></div>
                     </div>
                 </div>
-                <div class="button-group">
-                    <button id="add-player-btn" class="pixel-btn">+ Add Player</button>
-                    <button id="remove-player-btn" class="pixel-btn">- Remove Player</button>
-                </div>
-            </div>
 
-            <div class="setup-section">
-                <h2>Board Configuration</h2>
-                <div class="input-group">
-                    <label for="map-select">Select Map:</label>
-                    <select id="map-select">
-                        <option value="default">Default Board</option>
-                        <option value="custom">Load Custom Map</option>
-                    </select>
+                <div class="setup-section sticky-note pink">
+                    <div class="paper-clip"></div>
+                    <h2>👩‍🔬 Players (2-4)</h2>
+                    <div id="player-inputs">
+                        <div class="player-input">
+                            <input type="text" class="player-name" placeholder="Player 1 Name" value="Dr. Hypothesis">
+                            <input type="color" class="player-color" value="#e74c3c">
+                            <label class="ai-toggle"><input type="checkbox" class="player-ai"> AI</label>
+                        </div>
+                        <div class="player-input">
+                            <input type="text" class="player-name" placeholder="Player 2 Name" value="Prof. Theory">
+                            <input type="color" class="player-color" value="#3498db">
+                            <label class="ai-toggle"><input type="checkbox" class="player-ai" checked> AI</label>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button id="add-player-btn" class="sketch-btn">+ Add Player</button>
+                        <button id="remove-player-btn" class="sketch-btn">- Remove Player</button>
+                    </div>
                 </div>
-                <div id="custom-map-input" style="display: none;">
-                    <textarea id="map-text" placeholder="Paste map configuration here..."></textarea>
-                </div>
-            </div>
 
-            <button id="start-game-btn" class="pixel-btn large">START GAME</button>
+                <div class="setup-section sticky-note blue">
+                    <div class="tape tape-corner"></div>
+                    <h2>🗺️ Board Configuration</h2>
+                    <div class="input-group">
+                        <label for="map-select">Select Map:</label>
+                        <select id="map-select">
+                            <option value="default">Default Board</option>
+                            <option value="custom">Load Custom Map</option>
+                        </select>
+                    </div>
+                    <div id="custom-map-input" style="display: none;">
+                        <textarea id="map-text" placeholder="Paste map configuration here..."></textarea>
+                    </div>
+                </div>
+
+                <button id="start-game-btn" class="sketch-btn large">▶ START GAME!</button>
+
+                <!-- Decorative stickers -->
+                <div class="sticker sticker-star">⭐</div>
+                <div class="sticker sticker-lightbulb">💡</div>
+            </div>
         </div>
 
         <!-- Game Screen -->
         <div id="game-screen" class="screen" style="display: none;">
-            <div id="game-header">
-                <div id="entity-display">
+            <div id="game-header" class="notebook-header">
+                <div id="entity-display" class="header-tag">
                     <span id="entity-info"></span>
                 </div>
                 <div id="llm-status" class="llm-indicator">
                     <span class="llm-icon">🤖</span>
                     <span class="llm-text">Checking AI...</span>
                 </div>
-                <div id="turn-display">
+                <div id="turn-display" class="header-tag">
                     <span id="current-turn"></span>
                 </div>
             </div>
 
             <div id="main-game-area">
-                <div id="board-container">
+                <div id="board-container" class="notebook-spread">
+                    <div class="spread-binding"></div>
                     <canvas id="game-board"></canvas>
                 </div>
 
                 <div id="side-panel">
-                    <div id="players-panel">
-                        <h3>Scientists</h3>
+                    <div id="players-panel" class="side-sticky green">
+                        <div class="fold-corner"></div>
+                        <h3>👩‍🔬 Scientists</h3>
                         <div id="player-stats"></div>
                     </div>
 
-                    <div id="underdeterminism-panel">
-                        <h3>Scientific Underdeterminism</h3>
+                    <div id="underdeterminism-panel" class="side-sticky purple">
+                        <div class="tape tape-small"></div>
+                        <h3>🎲 Scientific Underdeterminism</h3>
                         <div id="underdeterminism-info">
                             <span class="npc-icon">🎲</span>
                             <span id="npc-position">Position: Start</span>
                         </div>
                     </div>
 
-                    <div id="theories-panel">
-                        <h3>Established Theories</h3>
+                    <div id="theories-panel" class="side-sticky orange">
+                        <div class="paper-clip clip-small"></div>
+                        <h3>📜 Established Theories</h3>
                         <div id="theories-list"></div>
                     </div>
                 </div>
             </div>
 
             <div id="action-panel">
-                <div id="game-log"></div>
+                <div id="game-log" class="torn-paper"></div>
                 <div id="action-buttons">
-                    <button id="roll-dice-btn" class="pixel-btn">Roll Dice</button>
+                    <button id="roll-dice-btn" class="sketch-btn roll-btn">🎲 Roll Dice</button>
                 </div>
             </div>
         </div>
 
         <!-- Modal for actions -->
         <div id="modal" class="modal" style="display: none;">
-            <div class="modal-content">
+            <div class="modal-content torn-note">
+                <div class="tape tape-top"></div>
                 <h2 id="modal-title"></h2>
                 <div id="modal-body"></div>
                 <div id="modal-buttons"></div>
@@ -131,26 +185,43 @@
         </div>
 
         <!-- Game Over Screen -->
-        <div id="gameover-screen" class="screen" style="display: none;">
-            <h1 class="pixel-title">GAME OVER</h1>
-            <div id="winner-display"></div>
-
-            <!-- Theory Revelation Section -->
-            <div id="theory-revelation" class="theory-revelation">
-                <h2 class="revelation-title">📜 THE GRAND UNIFIED THEORY 📜</h2>
-                <div id="theory-entity" class="theory-entity"></div>
-                <div id="theory-content" class="theory-content">
-                    <div class="theory-loading">Synthesizing groundbreaking discoveries...</div>
-                </div>
-                <div id="theory-contributors" class="theory-contributors"></div>
+        <div id="gameover-screen" class="screen notebook-page" style="display: none;">
+            <div class="spiral-binding">
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
+                <div class="spiral-ring"></div>
             </div>
 
-            <div id="final-stats"></div>
-            <button id="play-again-btn" class="pixel-btn large">PLAY AGAIN</button>
+            <div class="page-content">
+                <h1 class="hand-title">📓 GAME OVER 📓</h1>
+                <div id="winner-display" class="winner-card"></div>
+
+                <!-- Theory Revelation Section -->
+                <div id="theory-revelation" class="theory-revelation notebook-insert">
+                    <div class="tape tape-left"></div>
+                    <div class="tape tape-right"></div>
+                    <h2 class="revelation-title">📜 THE GRAND UNIFIED THEORY 📜</h2>
+                    <div id="theory-entity" class="theory-entity"></div>
+                    <div id="theory-content" class="theory-content">
+                        <div class="theory-loading">✏️ Synthesizing groundbreaking discoveries...</div>
+                    </div>
+                    <div id="theory-contributors" class="theory-contributors"></div>
+                </div>
+
+                <div id="final-stats" class="stats-board"></div>
+                <button id="play-again-btn" class="sketch-btn large">🔄 PLAY AGAIN!</button>
+
+                <div class="sticker sticker-trophy">🏆</div>
+            </div>
         </div>
 
         <!-- Board Tooltip -->
-        <div id="board-tooltip" class="board-tooltip"></div>
+        <div id="board-tooltip" class="board-tooltip sketch-tooltip"></div>
     </div>
 
     <script src="game.js"></script>

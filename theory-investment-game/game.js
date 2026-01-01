@@ -307,19 +307,26 @@ const SPACE_TYPES = {
     EUREKA: 'eureka'
 };
 
-// Muted earth tone colors (reduced saturation)
+// Colored pencil palette for notebook aesthetic
 const SPACE_COLORS = {
-    [SPACE_TYPES.START]: '#4a5a4d',      // Muted forest green
-    [SPACE_TYPES.HYPOTHESIS]: '#a89458', // Muted gold
-    [SPACE_TYPES.RECRUIT]: '#7a6048',    // Muted sepia
-    [SPACE_TYPES.CONFERENCE]: '#524035', // Muted sepia dark
-    [SPACE_TYPES.SABBATICAL]: '#5a6b5a', // Muted sage green
-    [SPACE_TYPES.PEER_REVIEW]: '#6b4a4e', // Muted burgundy
-    [SPACE_TYPES.GRANT]: '#4a5a4d',      // Muted dark green
-    [SPACE_TYPES.SCANDAL]: '#7a4540',    // Muted dark red
-    [SPACE_TYPES.COLLABORATION]: '#5f4a3a', // Muted brown
-    [SPACE_TYPES.EUREKA]: '#b8a060'      // Muted gold light
+    [SPACE_TYPES.START]: '#27ae60',      // Pencil green
+    [SPACE_TYPES.HYPOTHESIS]: '#f39c12', // Pencil yellow/orange
+    [SPACE_TYPES.RECRUIT]: '#3498db',    // Pencil blue
+    [SPACE_TYPES.CONFERENCE]: '#9b59b6', // Pencil purple
+    [SPACE_TYPES.SABBATICAL]: '#1abc9c', // Pencil teal
+    [SPACE_TYPES.PEER_REVIEW]: '#e74c3c', // Pencil red
+    [SPACE_TYPES.GRANT]: '#2ecc71',      // Pencil bright green
+    [SPACE_TYPES.SCANDAL]: '#c0392b',    // Pencil dark red
+    [SPACE_TYPES.COLLABORATION]: '#e67e22', // Pencil orange
+    [SPACE_TYPES.EUREKA]: '#f1c40f'      // Pencil bright yellow
 };
+
+// Handwritten formula decorations for notebook margins
+const MARGIN_FORMULAS = [
+    'E = mc²', '∫dx', 'Σn²', 'λ = h/p', '∇×B', 'ψ(x,t)',
+    '∂²u/∂t²', 'lim→∞', '∮F·dr', 'P(A|B)', '∆G = ∆H', 'F = ma',
+    'H₂O', 'CO₂', 'π ≈ 3.14', 'e^iπ + 1 = 0', '√2', 'dx/dt'
+];
 
 const SPACE_DESCRIPTIONS = {
     [SPACE_TYPES.START]: 'Begin your academic journey! Passing this space rejuvenates you by 2 years.',
@@ -397,7 +404,7 @@ function showModal(title, bodyHTML, buttons) {
 
     buttons.forEach(btn => {
         const button = document.createElement('button');
-        button.className = 'pixel-btn';
+        button.className = 'sketch-btn';
         button.textContent = btn.text;
         button.onclick = () => {
             btn.action();
@@ -1247,8 +1254,8 @@ function drawSpaceIcon(ctx, type, x, y, size, isProven = false) {
 function drawStartIcon(ctx, cx, cy, scale) {
     // Quill pen and inkwell - classical scientific beginning
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
-    ctx.fillStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
+    ctx.fillStyle = '#2c3e50';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -1286,8 +1293,8 @@ function drawStartIcon(ctx, cx, cy, scale) {
 function drawHypothesisIcon(ctx, cx, cy, scale) {
     // Classical alchemical retort/flask
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
-    ctx.fillStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
+    ctx.fillStyle = '#2c3e50';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1331,7 +1338,7 @@ function drawHypothesisIcon(ctx, cx, cy, scale) {
 function drawProvenIcon(ctx, cx, cy, scale) {
     // Laurel wreath - symbol of established achievement
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
     ctx.fillStyle = '#4a5a4d';
     ctx.lineWidth = 1.2 * s;
     ctx.lineCap = 'round';
@@ -1370,8 +1377,8 @@ function drawProvenIcon(ctx, cx, cy, scale) {
 function drawRecruitIcon(ctx, cx, cy, scale) {
     // Classical scholar with scroll - period appropriate student
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
-    ctx.fillStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
+    ctx.fillStyle = '#2c3e50';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1410,8 +1417,8 @@ function drawRecruitIcon(ctx, cx, cy, scale) {
 function drawConferenceIcon(ctx, cx, cy, scale) {
     // Royal Society style lectern with open book
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
-    ctx.fillStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
+    ctx.fillStyle = '#2c3e50';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1462,8 +1469,8 @@ function drawConferenceIcon(ctx, cx, cy, scale) {
 function drawSabbaticalIcon(ctx, cx, cy, scale) {
     // Stack of books with candle - scholarly rest and contemplation
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
-    ctx.fillStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
+    ctx.fillStyle = '#2c3e50';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1509,8 +1516,8 @@ function drawSabbaticalIcon(ctx, cx, cy, scale) {
 function drawPeerReviewIcon(ctx, cx, cy, scale) {
     // Period spectacles examining a document
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
-    ctx.fillStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
+    ctx.fillStyle = '#2c3e50';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1556,8 +1563,8 @@ function drawPeerReviewIcon(ctx, cx, cy, scale) {
 function drawGrantIcon(ctx, cx, cy, scale) {
     // Royal coin purse with coins - period patronage
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
-    ctx.fillStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
+    ctx.fillStyle = '#2c3e50';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1599,8 +1606,8 @@ function drawGrantIcon(ctx, cx, cy, scale) {
 function drawScandalIcon(ctx, cx, cy, scale) {
     // Broken quill and spilled ink - scientific scandal
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
-    ctx.fillStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
+    ctx.fillStyle = '#2c3e50';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
 
@@ -1644,8 +1651,8 @@ function drawScandalIcon(ctx, cx, cy, scale) {
 function drawCollaborationIcon(ctx, cx, cy, scale) {
     // Two hands shaking with period sleeve cuffs
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
-    ctx.fillStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
+    ctx.fillStyle = '#2c3e50';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -1701,7 +1708,7 @@ function drawCollaborationIcon(ctx, cx, cy, scale) {
 function drawEurekaIcon(ctx, cx, cy, scale) {
     // Newton's apple with enlightenment rays - classical eureka
     const s = scale;
-    ctx.strokeStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
     ctx.fillStyle = '#6b4a4e';
     ctx.lineWidth = 1.5 * s;
     ctx.lineCap = 'round';
@@ -1716,7 +1723,7 @@ function drawEurekaIcon(ctx, cx, cy, scale) {
     ctx.stroke();
 
     // Apple stem
-    ctx.strokeStyle = '#3a3028';
+    ctx.strokeStyle = '#2c3e50';
     ctx.lineWidth = 1.5 * s;
     ctx.beginPath();
     ctx.moveTo(cx, cy - 6 * s);
@@ -1793,26 +1800,60 @@ function renderBoard() {
     const spaceSize = baseSpaceSize;
     const padding = basePadding;
 
-    // Clear canvas with parchment background
-    ctx.fillStyle = '#e8dcc8';
+    // Clear canvas with cream paper background
+    ctx.fillStyle = '#fefcf7';
     ctx.fillRect(0, 0, logicalBoardWidth, logicalBoardHeight);
 
-    // Add subtle aged paper texture effect
-    ctx.fillStyle = 'rgba(112, 66, 20, 0.03)';
-    for (let i = 0; i < 50; i++) {
-        const x = Math.random() * logicalBoardWidth;
-        const y = Math.random() * logicalBoardHeight;
-        const size = Math.random() * 3 + 1;
-        ctx.fillRect(x, y, size, size);
+    // Draw dot grid pattern
+    ctx.fillStyle = '#bdc3c7';
+    const dotSpacing = 15;
+    for (let dotX = dotSpacing; dotX < logicalBoardWidth; dotX += dotSpacing) {
+        for (let dotY = dotSpacing; dotY < logicalBoardHeight; dotY += dotSpacing) {
+            ctx.beginPath();
+            ctx.arc(dotX, dotY, 0.8, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 
-    // Draw decorative border
-    ctx.strokeStyle = '#5a4a3a';
+    // Draw formula doodles in margins (seeded by board size for consistency)
+    ctx.font = '10px "Architects Daughter", cursive';
+    ctx.fillStyle = 'rgba(127, 140, 141, 0.3)';
+    const formulaPositions = [
+        { x: 12, y: 25, r: -5 },
+        { x: logicalBoardWidth - 50, y: 20, r: 8 },
+        { x: 8, y: logicalBoardHeight - 15, r: 3 },
+        { x: logicalBoardWidth - 45, y: logicalBoardHeight - 10, r: -4 },
+        { x: 15, y: logicalBoardHeight / 2, r: -90 },
+        { x: logicalBoardWidth - 15, y: logicalBoardHeight / 2 - 30, r: 90 }
+    ];
+    formulaPositions.forEach((pos, i) => {
+        ctx.save();
+        ctx.translate(pos.x, pos.y);
+        ctx.rotate(pos.r * Math.PI / 180);
+        ctx.fillText(MARGIN_FORMULAS[i % MARGIN_FORMULAS.length], 0, 0);
+        ctx.restore();
+    });
+
+    // Draw sketchy hand-drawn border
+    ctx.strokeStyle = '#7f8c8d';
     ctx.lineWidth = 2;
-    ctx.strokeRect(8, 8, logicalBoardWidth - 16, logicalBoardHeight - 16);
-    ctx.strokeStyle = '#a89458';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(12, 12, logicalBoardWidth - 24, logicalBoardHeight - 24);
+    ctx.setLineDash([]);
+    // Slightly wobbly rectangle
+    ctx.beginPath();
+    ctx.moveTo(10, 12);
+    ctx.lineTo(logicalBoardWidth - 12, 10);
+    ctx.lineTo(logicalBoardWidth - 10, logicalBoardHeight - 12);
+    ctx.lineTo(12, logicalBoardHeight - 10);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Red margin line (like notebook)
+    ctx.strokeStyle = 'rgba(229, 115, 115, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(padding - 5, 5);
+    ctx.lineTo(padding - 5, logicalBoardHeight - 5);
+    ctx.stroke();
 
     // Calculate positions for each space (going clockwise)
     const positions = [];
@@ -1848,7 +1889,7 @@ function renderBoard() {
     GameState.boardPositions = positions;
     GameState.boardSpaceSize = spaceSize;
 
-    // Draw spaces
+    // Draw spaces with sketchy rounded corners
     board.forEach((space, i) => {
         const pos = positions[i];
         if (!pos) return;
@@ -1860,34 +1901,60 @@ function renderBoard() {
             const initialInvestorIndex = space.contributions[0].playerIndex;
             const initialInvestor = GameState.players[initialInvestorIndex];
             if (initialInvestor) {
-                // Blend the player's color with the base hypothesis color for visibility
                 color = initialInvestor.color;
             }
         }
 
-        // Draw space background
-        ctx.fillStyle = color;
-        ctx.fillRect(pos.x, pos.y, spaceSize - 2, spaceSize - 2);
+        // Draw space with rounded corners (notebook style)
+        const radius = 6;
+        const w = spaceSize - 4;
+        const h = spaceSize - 4;
+        const x = pos.x + 1;
+        const y = pos.y + 1;
 
-        // Draw border for hypothesis spaces with content
+        // Fill with color
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + w - radius, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+        ctx.lineTo(x + w, y + h - radius);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+        ctx.lineTo(x + radius, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw sketchy border
+        ctx.strokeStyle = 'rgba(44, 62, 80, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Draw extra border for hypothesis spaces with content
         if (space.hypothesis) {
-            ctx.strokeStyle = space.isProven ? '#fff' : '#c8b070';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(pos.x + 2, pos.y + 2, spaceSize - 6, spaceSize - 6);
+            ctx.strokeStyle = space.isProven ? '#27ae60' : '#e67e22';
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([4, 2]);
+            ctx.stroke();
+            ctx.setLineDash([]);
         }
 
-        // Draw space type icon using pixel art
+        // Draw space type icon (hand-drawn style)
         drawSpaceIcon(ctx, space.type, pos.x, pos.y, spaceSize - 2, space.isProven);
 
-        // Draw investment cost for hypothesis
+        // Draw investment cost for hypothesis (handwriting font)
         if (space.type === SPACE_TYPES.HYPOTHESIS && space.investmentCost > 0) {
-            ctx.fillStyle = '#000';
-            ctx.font = '8px "Press Start 2P"';
-            ctx.fillText(space.investmentCost + 'y', pos.x + spaceSize/2 - 1, pos.y + spaceSize - 8);
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 11px "Patrick Hand", cursive';
+            ctx.textAlign = 'center';
+            ctx.fillText(space.investmentCost + 'yr', pos.x + spaceSize/2, pos.y + spaceSize - 6);
+            ctx.textAlign = 'left';
         }
     });
 
-    // Draw players
+    // Draw players (sketchy circle tokens)
     GameState.players.forEach((player, pIndex) => {
         if (!player.isAlive) return;
 
@@ -1904,31 +1971,41 @@ function renderBoard() {
 
         // Draw shadow when bouncing
         if (animPos && GameState.animation.bounceHeight > 0) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
             ctx.beginPath();
             ctx.ellipse(drawX, basePos.y + offsetY + GameState.animation.bounceHeight * 0.3,
-                       8, 4, 0, 0, Math.PI * 2);
+                       9, 4, 0, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // Player token
+        // Player token (sketchy filled circle)
         ctx.fillStyle = player.color;
         ctx.beginPath();
-        ctx.arc(drawX, drawY, 8, 0, Math.PI * 2);
+        ctx.arc(drawX, drawY, 9, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = '#fff';
+        // Sketchy outline
+        ctx.strokeStyle = '#2c3e50';
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Player number
+        // Inner highlight
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(drawX - 2, drawY - 2, 4, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Player number (handwriting style)
         ctx.fillStyle = '#fff';
-        ctx.font = '8px "Press Start 2P"';
+        ctx.font = 'bold 10px "Patrick Hand", cursive';
         ctx.textAlign = 'center';
-        ctx.fillText((pIndex + 1).toString(), drawX, drawY + 3);
+        ctx.textBaseline = 'middle';
+        ctx.fillText((pIndex + 1).toString(), drawX, drawY + 1);
+        ctx.textBaseline = 'alphabetic';
     });
 
-    // Draw NPC
+    // Draw NPC (Scientific Underdeterminism - sketchy question mark shape)
     const animNpcPos = getAnimatedPosition('npc', null, positions, spaceSize);
     const npcBasePos = animNpcPos || positions[GameState.npc.position];
     if (npcBasePos) {
@@ -1937,24 +2014,35 @@ function renderBoard() {
 
         // Draw shadow when bouncing
         if (animNpcPos && GameState.animation.bounceHeight > 0) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
             ctx.beginPath();
             ctx.ellipse(npcX, positions[GameState.animation.currentPos].y + spaceSize/2 + 8 + GameState.animation.bounceHeight * 0.3,
-                       10, 5, 0, 0, Math.PI * 2);
+                       11, 5, 0, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        ctx.fillStyle = '#7a6080';
+        // NPC token (purple diamond/question shape)
+        ctx.fillStyle = '#9b59b6';
         ctx.beginPath();
         ctx.moveTo(npcX, npcY - 12);
-        ctx.lineTo(npcX + 10, npcY + 8);
-        ctx.lineTo(npcX - 10, npcY + 8);
+        ctx.lineTo(npcX + 10, npcY);
+        ctx.lineTo(npcX, npcY + 12);
+        ctx.lineTo(npcX - 10, npcY);
         ctx.closePath();
         ctx.fill();
 
-        ctx.strokeStyle = '#fff';
+        // Sketchy outline
+        ctx.strokeStyle = '#2c3e50';
         ctx.lineWidth = 2;
         ctx.stroke();
+
+        // Question mark inside
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px "Permanent Marker", cursive';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('?', npcX, npcY + 1);
+        ctx.textBaseline = 'alphabetic';
 
         // Add a mystical glow effect during animation
         if (animNpcPos) {
@@ -1962,8 +2050,9 @@ function renderBoard() {
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(npcX, npcY - 16);
-            ctx.lineTo(npcX + 14, npcY + 10);
-            ctx.lineTo(npcX - 14, npcY + 10);
+            ctx.lineTo(npcX + 14, npcY);
+            ctx.lineTo(npcX, npcY + 16);
+            ctx.lineTo(npcX - 14, npcY);
             ctx.closePath();
             ctx.stroke();
         }
