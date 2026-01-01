@@ -1980,12 +1980,70 @@ function renderBoard() {
     const spaceSize = baseSpaceSize;
     const padding = basePadding;
 
-    // Clear canvas with cream paper background
-    ctx.fillStyle = '#fefcf7';
+    // Clear canvas with aged yellowish paper background
+    ctx.fillStyle = '#f5edd8';
     ctx.fillRect(0, 0, logicalBoardWidth, logicalBoardHeight);
 
-    // Draw dot grid pattern
-    ctx.fillStyle = '#bdc3c7';
+    // Add aged paper stains/spots
+    ctx.save();
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = '#8B7750';
+    // Coffee stain spots
+    ctx.beginPath();
+    ctx.ellipse(logicalBoardWidth * 0.15, logicalBoardHeight * 0.2, 25, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(logicalBoardWidth * 0.85, logicalBoardHeight * 0.8, 20, 25, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(logicalBoardWidth * 0.5, logicalBoardHeight * 0.9, 15, 12, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Edge darkening for worn look
+    const edgeGrad = ctx.createLinearGradient(0, 0, logicalBoardWidth, 0);
+    edgeGrad.addColorStop(0, 'rgba(139,119,80,0.15)');
+    edgeGrad.addColorStop(0.05, 'rgba(139,119,80,0)');
+    edgeGrad.addColorStop(0.95, 'rgba(139,119,80,0)');
+    edgeGrad.addColorStop(1, 'rgba(139,119,80,0.15)');
+    ctx.fillStyle = edgeGrad;
+    ctx.fillRect(0, 0, logicalBoardWidth, logicalBoardHeight);
+
+    const edgeGradV = ctx.createLinearGradient(0, 0, 0, logicalBoardHeight);
+    edgeGradV.addColorStop(0, 'rgba(139,119,80,0.1)');
+    edgeGradV.addColorStop(0.03, 'rgba(139,119,80,0)');
+    edgeGradV.addColorStop(0.97, 'rgba(139,119,80,0)');
+    edgeGradV.addColorStop(1, 'rgba(139,119,80,0.1)');
+    ctx.fillStyle = edgeGradV;
+    ctx.fillRect(0, 0, logicalBoardWidth, logicalBoardHeight);
+
+    // Draw subtle wrinkle lines
+    ctx.globalAlpha = 0.06;
+    ctx.strokeStyle = '#8B7750';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(0, logicalBoardHeight * 0.3);
+    ctx.quadraticCurveTo(logicalBoardWidth * 0.3, logicalBoardHeight * 0.28, logicalBoardWidth * 0.6, logicalBoardHeight * 0.32);
+    ctx.quadraticCurveTo(logicalBoardWidth * 0.8, logicalBoardHeight * 0.35, logicalBoardWidth, logicalBoardHeight * 0.31);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, logicalBoardHeight * 0.7);
+    ctx.quadraticCurveTo(logicalBoardWidth * 0.4, logicalBoardHeight * 0.68, logicalBoardWidth * 0.7, logicalBoardHeight * 0.72);
+    ctx.quadraticCurveTo(logicalBoardWidth * 0.9, logicalBoardHeight * 0.69, logicalBoardWidth, logicalBoardHeight * 0.71);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(logicalBoardWidth * 0.25, 0);
+    ctx.quadraticCurveTo(logicalBoardWidth * 0.23, logicalBoardHeight * 0.4, logicalBoardWidth * 0.27, logicalBoardHeight * 0.7);
+    ctx.quadraticCurveTo(logicalBoardWidth * 0.24, logicalBoardHeight * 0.9, logicalBoardWidth * 0.26, logicalBoardHeight);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(logicalBoardWidth * 0.75, 0);
+    ctx.quadraticCurveTo(logicalBoardWidth * 0.77, logicalBoardHeight * 0.3, logicalBoardWidth * 0.74, logicalBoardHeight * 0.6);
+    ctx.quadraticCurveTo(logicalBoardWidth * 0.76, logicalBoardHeight * 0.85, logicalBoardWidth * 0.75, logicalBoardHeight);
+    ctx.stroke();
+    ctx.restore();
+
+    // Draw dot grid pattern (slightly faded for aged look)
+    ctx.fillStyle = '#a8a090';
     const dotSpacing = 15;
     for (let dotX = dotSpacing; dotX < logicalBoardWidth; dotX += dotSpacing) {
         for (let dotY = dotSpacing; dotY < logicalBoardHeight; dotY += dotSpacing) {

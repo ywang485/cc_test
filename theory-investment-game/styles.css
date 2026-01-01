@@ -9,11 +9,13 @@
    ============================================ */
 
 :root {
-    /* Paper Colors */
-    --paper-cream: #f5f0e6;
-    --paper-white: #fefcf7;
-    --paper-aged: #e8e0d0;
-    --paper-shadow: #d4cbb8;
+    /* Paper Colors - Aged & Yellowed */
+    --paper-cream: #e8dcc8;
+    --paper-white: #f5edd8;
+    --paper-aged: #ddd2b8;
+    --paper-shadow: #c4b89a;
+    --paper-stain: rgba(139, 119, 80, 0.12);
+    --paper-wrinkle: rgba(100, 80, 50, 0.08);
 
     /* Ink Colors */
     --ink-black: #2c3e50;
@@ -39,13 +41,13 @@
     --highlight-green: rgba(144, 238, 144, 0.3);
     --highlight-blue: rgba(135, 206, 250, 0.3);
 
-    /* Sticky Note Colors */
-    --sticky-yellow: #fff9c4;
-    --sticky-pink: #f8bbd9;
-    --sticky-blue: #b3e5fc;
-    --sticky-green: #c8e6c9;
-    --sticky-orange: #ffe0b2;
-    --sticky-purple: #e1bee7;
+    /* Sticky Note Colors - Aged & Yellowed */
+    --sticky-yellow: #f0e6a8;
+    --sticky-pink: #e8b0c8;
+    --sticky-blue: #a8d4e8;
+    --sticky-green: #b8d8b0;
+    --sticky-orange: #f0d0a0;
+    --sticky-purple: #d4b0d8;
 
     /* Notebook Lines */
     --line-blue: #a8d4f0;
@@ -92,10 +94,32 @@ body {
     height: 100%;
     pointer-events: none;
     z-index: 9999;
-    opacity: 0.03;
+    opacity: 0.06;
     background-image:
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+        /* Wrinkle lines */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,50 Q100,45 200,55 T400,50' stroke='%238B7750' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3Cpath d='M0,150 Q150,145 250,160 T400,155' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.25'/%3E%3Cpath d='M0,250 Q80,260 180,245 T400,250' stroke='%238B7750' stroke-width='0.4' fill='none' opacity='0.2'/%3E%3Cpath d='M0,350 Q120,340 220,355 T400,345' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.25'/%3E%3Cpath d='M50,0 Q45,100 55,200 T50,400' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.2'/%3E%3Cpath d='M150,0 Q160,80 145,180 T155,400' stroke='%238B7750' stroke-width='0.4' fill='none' opacity='0.25'/%3E%3Cpath d='M250,0 Q245,120 260,220 T250,400' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.2'/%3E%3Cpath d='M350,0 Q355,90 345,190 T350,400' stroke='%238B7750' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3C/svg%3E"),
+        /* Paper grain noise */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
     mix-blend-mode: multiply;
+}
+
+/* Wrinkle overlay for aged paper effect */
+.paper-texture::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        /* Coffee stain spots */
+        radial-gradient(ellipse 80px 60px at 15% 20%, var(--paper-stain) 0%, transparent 70%),
+        radial-gradient(ellipse 60px 80px at 85% 75%, var(--paper-stain) 0%, transparent 70%),
+        radial-gradient(ellipse 40px 50px at 45% 90%, var(--paper-stain) 0%, transparent 70%),
+        /* Edge darkening */
+        linear-gradient(to right, var(--paper-wrinkle) 0%, transparent 3%, transparent 97%, var(--paper-wrinkle) 100%),
+        linear-gradient(to bottom, var(--paper-wrinkle) 0%, transparent 2%, transparent 98%, var(--paper-wrinkle) 100%);
+    pointer-events: none;
 }
 
 /* ============================================
@@ -172,12 +196,23 @@ body {
    ============================================ */
 
 .notebook-page {
-    background: var(--paper-white);
+    background:
+        /* Wrinkle creases */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,80 Q60,75 120,85 T240,78 T300,82' stroke='%238B7750' stroke-width='0.4' fill='none' opacity='0.15'/%3E%3Cpath d='M0,180 Q80,175 160,188 T300,180' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.12'/%3E%3Cpath d='M80,0 Q75,60 88,120 T80,240 T82,300' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.1'/%3E%3Cpath d='M220,0 Q225,80 215,160 T220,300' stroke='%238B7750' stroke-width='0.4' fill='none' opacity='0.12'/%3E%3C/svg%3E"),
+        /* Aged paper gradient */
+        radial-gradient(ellipse 60% 40% at 20% 30%, var(--paper-stain) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 60% at 80% 70%, var(--paper-stain) 0%, transparent 50%),
+        /* Edge darkening for worn look */
+        linear-gradient(to right, rgba(139,119,80,0.08) 0%, transparent 5%, transparent 95%, rgba(139,119,80,0.08) 100%),
+        linear-gradient(to bottom, rgba(139,119,80,0.06) 0%, transparent 3%, transparent 97%, rgba(139,119,80,0.06) 100%),
+        /* Base paper color */
+        var(--paper-white);
     border: 2px solid var(--paper-shadow);
     border-radius: 3px;
     box-shadow:
         4px 4px 0 var(--paper-shadow),
-        8px 8px 15px rgba(0,0,0,0.1);
+        8px 8px 15px rgba(0,0,0,0.1),
+        inset 0 0 30px rgba(139,119,80,0.05);
     position: relative;
     padding-left: 60px;
 }
@@ -277,22 +312,41 @@ body {
     position: relative;
     box-shadow:
         3px 3px 7px rgba(0,0,0,0.15),
-        0 0 0 1px rgba(0,0,0,0.05);
+        0 0 0 1px rgba(0,0,0,0.05),
+        inset 0 0 20px rgba(139,119,80,0.08);
     transform: rotate(var(--note-rotation, 0deg));
 }
 
+/* Wrinkle overlay for sticky notes */
+.sticky-note::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background:
+        /* Crease lines */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,40 Q30,38 60,42 T120,39 T150,41' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.15'/%3E%3Cpath d='M0,100 Q40,97 80,103 T150,99' stroke='%238B7750' stroke-width='0.25' fill='none' opacity='0.12'/%3E%3Cpath d='M40,0 Q38,30 43,60 T40,120 T42,150' stroke='%238B7750' stroke-width='0.25' fill='none' opacity='0.1'/%3E%3Cpath d='M110,0 Q112,40 108,80 T110,150' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.12'/%3E%3C/svg%3E"),
+        /* Corner wear */
+        radial-gradient(ellipse 30px 30px at 5% 5%, rgba(139,119,80,0.1) 0%, transparent 70%),
+        radial-gradient(ellipse 25px 25px at 95% 95%, rgba(139,119,80,0.08) 0%, transparent 70%);
+    opacity: 0.8;
+}
+
 .sticky-note.yellow {
-    background: linear-gradient(135deg, var(--sticky-yellow) 0%, #fff59d 100%);
+    background: linear-gradient(135deg, var(--sticky-yellow) 0%, #e8dca0 100%);
     --note-rotation: -0.5deg;
 }
 
 .sticky-note.pink {
-    background: linear-gradient(135deg, var(--sticky-pink) 0%, #f48fb1 100%);
+    background: linear-gradient(135deg, var(--sticky-pink) 0%, #d8a0b8 100%);
     --note-rotation: 0.8deg;
 }
 
 .sticky-note.blue {
-    background: linear-gradient(135deg, var(--sticky-blue) 0%, #81d4fa 100%);
+    background: linear-gradient(135deg, var(--sticky-blue) 0%, #98c8d8 100%);
     --note-rotation: -0.3deg;
 }
 
@@ -338,21 +392,38 @@ body {
     padding: 15px;
     position: relative;
     margin-bottom: 15px;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.12);
+    box-shadow:
+        2px 2px 5px rgba(0,0,0,0.12),
+        inset 0 0 15px rgba(139,119,80,0.06);
+}
+
+/* Wrinkle overlay for side sticky notes */
+.side-sticky::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,30 Q25,28 50,32 T100,30' stroke='%238B7750' stroke-width='0.25' fill='none' opacity='0.12'/%3E%3Cpath d='M0,70 Q30,68 60,73 T100,70' stroke='%238B7750' stroke-width='0.2' fill='none' opacity='0.1'/%3E%3C/svg%3E"),
+        radial-gradient(ellipse 20px 20px at 90% 90%, rgba(139,119,80,0.08) 0%, transparent 70%);
+    opacity: 0.7;
 }
 
 .side-sticky.green {
-    background: linear-gradient(180deg, var(--sticky-green) 0%, #a5d6a7 100%);
+    background: linear-gradient(180deg, var(--sticky-green) 0%, #a8c8a0 100%);
     transform: rotate(-0.5deg);
 }
 
 .side-sticky.purple {
-    background: linear-gradient(180deg, var(--sticky-purple) 0%, #ce93d8 100%);
+    background: linear-gradient(180deg, var(--sticky-purple) 0%, #c4a8c8 100%);
     transform: rotate(0.3deg);
 }
 
 .side-sticky.orange {
-    background: linear-gradient(180deg, var(--sticky-orange) 0%, #ffcc80 100%);
+    background: linear-gradient(180deg, var(--sticky-orange) 0%, #e8c8a0 100%);
     transform: rotate(-0.2deg);
 }
 
@@ -1162,7 +1233,14 @@ select {
 }
 
 .modal-content {
-    background: var(--paper-white);
+    background:
+        /* Wrinkle creases */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,60 Q40,55 80,65 T160,58 T200,62' stroke='%238B7750' stroke-width='0.35' fill='none' opacity='0.12'/%3E%3Cpath d='M0,140 Q50,135 100,145 T200,138' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.1'/%3E%3Cpath d='M60,0 Q55,40 68,80 T60,160 T62,200' stroke='%238B7750' stroke-width='0.25' fill='none' opacity='0.08'/%3E%3Cpath d='M140,0 Q145,50 138,100 T142,200' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.1'/%3E%3C/svg%3E"),
+        /* Aged stains */
+        radial-gradient(ellipse 40% 30% at 15% 25%, var(--paper-stain) 0%, transparent 50%),
+        radial-gradient(ellipse 35% 40% at 85% 75%, var(--paper-stain) 0%, transparent 50%),
+        /* Base color */
+        var(--paper-white);
     border: 3px solid var(--ink-dark);
     padding: 30px;
     max-width: 500px;
@@ -1170,21 +1248,25 @@ select {
     position: relative;
     box-shadow:
         8px 8px 0 rgba(0,0,0,0.2),
-        0 0 40px rgba(0,0,0,0.3);
+        0 0 40px rgba(0,0,0,0.3),
+        inset 0 0 25px rgba(139,119,80,0.06);
     animation: noteUnfold 0.3s ease-out;
     transform: rotate(-1deg);
 }
 
 .torn-note {
-    /* Paper texture lines */
+    /* Paper texture lines with aged look */
     background-image:
+        /* Wrinkle texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,50 Q30,47 60,53 T120,49 T150,51' stroke='%238B7750' stroke-width='0.3' fill='none' opacity='0.1'/%3E%3Cpath d='M0,100 Q40,97 80,103 T150,99' stroke='%238B7750' stroke-width='0.25' fill='none' opacity='0.08'/%3E%3C/svg%3E"),
+        /* Notebook lines */
         repeating-linear-gradient(
             transparent,
             transparent 27px,
             var(--line-blue) 27px,
             var(--line-blue) 28px
         );
-    background-position: 0 20px;
+    background-position: 0 0, 0 20px;
 }
 
 @keyframes noteUnfold {
