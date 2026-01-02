@@ -3669,16 +3669,14 @@ function initZoomControls() {
     if (zoomOutBtn) zoomOutBtn.addEventListener('click', zoomOut);
     if (zoomResetBtn) zoomResetBtn.addEventListener('click', zoomReset);
 
-    // Mouse wheel zoom
+    // Mouse wheel zoom (direct, no modifier needed)
     if (container) {
         container.addEventListener('wheel', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                if (e.deltaY < 0) {
-                    zoomIn();
-                } else {
-                    zoomOut();
-                }
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
             }
         }, { passive: false });
     }
