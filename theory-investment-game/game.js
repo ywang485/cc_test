@@ -1452,6 +1452,101 @@ function drawScribbleFill(ctx, x, y, w, h, color, seed = 0) {
     ctx.restore();
 }
 
+// Draw investment-based colored pencil strokes for hypothesis spaces
+// investments: array of { playerIndex, years } objects
+// totalYears: total years invested (affects density)
+function drawInvestmentHatching(ctx, x, y, w, h, investments, totalYears, seed = 0) {
+    if (!investments || investments.length === 0) return;
+
+    ctx.save();
+    ctx.lineCap = 'round';
+
+    // Calculate density based on total investment (more years = more lines)
+    const baseSpacing = 8;
+    const minSpacing = 2;
+    const densityFactor = Math.min(1, totalYears / 30); // Max density at 30 years
+    const spacing = baseSpacing - (baseSpacing - minSpacing) * densityFactor;
+
+    // Group investments by player
+    const playerInvestments = {};
+    investments.forEach(inv => {
+        if (!playerInvestments[inv.playerIndex]) {
+            playerInvestments[inv.playerIndex] = 0;
+        }
+        playerInvestments[inv.playerIndex] += inv.years;
+    });
+
+    // Draw hatching for each player with their color
+    const playerIndices = Object.keys(playerInvestments);
+    const angleStep = Math.PI / (playerIndices.length + 1); // Different angles for each player
+
+    playerIndices.forEach((playerIndexStr, pIdx) => {
+        const playerIndex = parseInt(playerIndexStr);
+        const player = GameState.players[playerIndex];
+        if (!player) return;
+
+        const playerYears = playerInvestments[playerIndex];
+        const playerDensity = playerYears / totalYears; // Proportion of total
+        const angle = (Math.PI / 4) + (pIdx - (playerIndices.length - 1) / 2) * 0.3; // Vary angle slightly
+
+        ctx.strokeStyle = player.color;
+        ctx.globalAlpha = 0.4 + playerDensity * 0.3; // More investment = more opaque
+        ctx.lineWidth = 1 + playerDensity * 0.5;
+
+        // Draw diagonal hatching lines
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+        const diagLength = Math.sqrt(w * w + h * h);
+
+        ctx.beginPath();
+        for (let i = -diagLength; i < diagLength * 2; i += spacing / playerDensity) {
+            const wobble = (seededRandom(seed + i * 7 + playerIndex * 100) - 0.5) * 1.5;
+
+            // Calculate line endpoints based on angle
+            const offsetX = i * cosA + wobble;
+            const offsetY = i * sinA;
+
+            // Start and end points for line crossing the box
+            let x1 = x + offsetX;
+            let y1 = y;
+            let x2 = x + offsetX - h * sinA / cosA;
+            let y2 = y + h;
+
+            // Clip to box bounds
+            if (x1 < x) { y1 += (x - x1) * sinA / cosA; x1 = x; }
+            if (x1 > x + w) { y1 += (x1 - (x + w)) * sinA / cosA; x1 = x + w; }
+            if (x2 < x) { y2 -= (x - x2) * sinA / cosA; x2 = x; }
+            if (x2 > x + w) { y2 -= (x2 - (x + w)) * sinA / cosA; x2 = x + w; }
+
+            if (y1 >= y && y1 <= y + h && y2 >= y && y2 <= y + h) {
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+            }
+        }
+        ctx.stroke();
+
+        // Add some scribble marks for texture
+        const numScribbles = Math.ceil(playerYears / 5);
+        ctx.lineWidth = 1.5;
+        for (let s = 0; s < numScribbles; s++) {
+            ctx.beginPath();
+            const sx = x + 5 + seededRandom(seed + s * 3 + playerIndex * 50) * (w - 10);
+            const sy = y + 5 + seededRandom(seed + s * 3 + 1 + playerIndex * 50) * (h - 10);
+            const scribbleSize = 3 + seededRandom(seed + s * 3 + 2 + playerIndex * 50) * 5;
+
+            ctx.moveTo(sx, sy);
+            for (let p = 0; p < 4; p++) {
+                const nx = sx + (seededRandom(seed + s * 10 + p + playerIndex * 50) - 0.5) * scribbleSize * 2;
+                const ny = sy + (seededRandom(seed + s * 10 + p + 5 + playerIndex * 50) - 0.5) * scribbleSize * 2;
+                ctx.lineTo(nx, ny);
+            }
+            ctx.stroke();
+        }
+    });
+
+    ctx.restore();
+}
+
 // ============================================
 // PIXEL ART ICONS
 // ============================================
@@ -2239,17 +2334,6 @@ function renderBoard() {
         const pos = positions[i];
         if (!pos) return;
 
-        let color = SPACE_COLORS[space.type] || '#666';
-
-        // Use the initial investor's color for hypothesis spaces with content
-        if (space.type === SPACE_TYPES.HYPOTHESIS && space.contributions && space.contributions.length > 0) {
-            const initialInvestorIndex = space.contributions[0].playerIndex;
-            const initialInvestor = GameState.players[initialInvestorIndex];
-            if (initialInvestor) {
-                color = initialInvestor.color;
-            }
-        }
-
         // Draw space with sketchy pencil-drawn style
         const radius = 5;
         const w = spaceSize - 4;
@@ -2258,58 +2342,101 @@ function renderBoard() {
         const y = pos.y + 2;
         const seed = i * 100; // Unique seed per space for consistent randomness
 
-        // Draw paper/card background with slight texture
         ctx.save();
 
-        // Base fill with sketchy rounded rect path
-        sketchyRoundedRect(ctx, x, y, w, h, radius, seed);
-        ctx.fillStyle = color;
-        ctx.fill();
+        const isHypothesis = space.type === SPACE_TYPES.HYPOTHESIS;
+        const hasInvestment = space.investments && space.investments.length > 0;
+        const totalYearsInvested = hasInvestment
+            ? space.investments.reduce((sum, inv) => sum + inv.years, 0)
+            : 0;
 
-        // Add pencil shading for depth (darker in bottom-right)
-        drawPencilShading(ctx, x + w * 0.5, y + h * 0.5, w * 0.5, h * 0.5, 0.1, seed + 50);
+        if (isHypothesis) {
+            // HYPOTHESIS SPACES: Blank until invested, then show colored pencil hatching
 
-        // Add light scribble texture overlay
-        if (space.type !== SPACE_TYPES.START) {
-            drawScribbleFill(ctx, x + 2, y + 2, w - 4, h - 4, 'rgba(255,255,255,0.5)', seed + 100);
+            // Draw faint paper background
+            sketchyRoundedRect(ctx, x, y, w, h, radius, seed);
+            ctx.fillStyle = '#f8f4e8'; // Very light cream/blank paper
+            ctx.fill();
+
+            if (hasInvestment) {
+                // Draw colored pencil hatching based on investments
+                // Clip to the space shape
+                ctx.save();
+                sketchyRoundedRect(ctx, x + 2, y + 2, w - 4, h - 4, radius - 1, seed);
+                ctx.clip();
+
+                // Draw investment-based colored hatching
+                drawInvestmentHatching(ctx, x + 2, y + 2, w - 4, h - 4, space.investments, totalYearsInvested, seed + 500);
+
+                ctx.restore();
+            }
+
+            // Draw border - faint if no investment, stronger if invested
+            ctx.lineWidth = hasInvestment ? 1.5 : 0.8;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            sketchyRoundedRect(ctx, x, y, w, h, radius, seed);
+            ctx.strokeStyle = hasInvestment ? 'rgba(44, 62, 80, 0.6)' : 'rgba(44, 62, 80, 0.25)';
+            ctx.stroke();
+
+            // Second pass for pencil texture
+            if (hasInvestment) {
+                sketchyRoundedRect(ctx, x + 0.3, y + 0.3, w, h, radius, seed + 20);
+                ctx.strokeStyle = 'rgba(44, 62, 80, 0.2)';
+                ctx.lineWidth = 0.6;
+                ctx.stroke();
+            }
+
+            // Draw extra border for hypothesis spaces with content (proven or in progress)
+            if (space.hypothesis) {
+                ctx.strokeStyle = space.isProven ? '#27ae60' : '#e67e22';
+                ctx.lineWidth = 2.5;
+                ctx.setLineDash([4, 2]);
+                sketchyRoundedRect(ctx, x - 1, y - 1, w + 2, h + 2, radius + 1, seed + 30);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+        } else {
+            // NON-HYPOTHESIS SPACES: Plain grey pencil sketches
+
+            // Draw light paper background
+            sketchyRoundedRect(ctx, x, y, w, h, radius, seed);
+            ctx.fillStyle = '#f0ece0';
+            ctx.fill();
+
+            // Add grey pencil shading
+            drawPencilShading(ctx, x + 3, y + 3, w - 6, h - 6, 0.12, seed + 50);
+
+            // Add grey scribble texture
+            drawScribbleFill(ctx, x + 4, y + 4, w - 8, h - 8, 'rgba(100, 100, 100, 0.3)', seed + 100);
+
+            // Draw grey pencil border
+            ctx.lineWidth = 1.2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // First pass - main border (grey)
+            sketchyRoundedRect(ctx, x, y, w, h, radius, seed);
+            ctx.strokeStyle = 'rgba(80, 80, 80, 0.6)';
+            ctx.stroke();
+
+            // Second pass - slightly offset for pencil texture
+            sketchyRoundedRect(ctx, x + 0.3, y + 0.3, w, h, radius, seed + 20);
+            ctx.strokeStyle = 'rgba(80, 80, 80, 0.25)';
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
         }
-
-        // Draw multiple pencil stroke borders for hand-drawn effect
-        ctx.lineWidth = 1.2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        // First pass - main border (darker)
-        sketchyRoundedRect(ctx, x, y, w, h, radius, seed);
-        ctx.strokeStyle = 'rgba(44, 62, 80, 0.7)';
-        ctx.stroke();
-
-        // Second pass - slightly offset for pencil texture
-        sketchyRoundedRect(ctx, x + 0.3, y + 0.3, w, h, radius, seed + 20);
-        ctx.strokeStyle = 'rgba(44, 62, 80, 0.3)';
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
 
         ctx.restore();
 
-        // Draw extra border for hypothesis spaces with content
-        if (space.hypothesis) {
-            ctx.save();
-            ctx.strokeStyle = space.isProven ? '#27ae60' : '#e67e22';
-            ctx.lineWidth = 2.5;
-            ctx.setLineDash([4, 2]);
-            sketchyRoundedRect(ctx, x - 1, y - 1, w + 2, h + 2, radius + 1, seed + 30);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.restore();
-        }
-
-        // Draw space type icon (hand-drawn style)
+        // Draw space type icon (hand-drawn style) - grey for non-hypothesis
         drawSpaceIcon(ctx, space.type, pos.x, pos.y, spaceSize - 2, space.isProven);
 
         // Draw investment cost for hypothesis (pixel font with hand-drawn underline)
-        if (space.type === SPACE_TYPES.HYPOTHESIS && space.investmentCost > 0) {
-            ctx.fillStyle = '#2c3e50';
+        if (isHypothesis && space.investmentCost > 0) {
+            ctx.fillStyle = hasInvestment ? '#2c3e50' : '#888';
             ctx.font = '7px "Press Start 2P", monospace';
             ctx.textAlign = 'center';
             const costText = space.investmentCost + 'y';
@@ -2318,7 +2445,7 @@ function renderBoard() {
             ctx.fillText(costText, textX, textY);
 
             // Add sketchy underline
-            ctx.strokeStyle = 'rgba(44, 62, 80, 0.4)';
+            ctx.strokeStyle = hasInvestment ? 'rgba(44, 62, 80, 0.4)' : 'rgba(100, 100, 100, 0.3)';
             ctx.lineWidth = 1;
             sketchyLine(ctx, textX - 12, textY + 2, textX + 12, textY + 2, seed + 200);
 
