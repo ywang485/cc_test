@@ -35,6 +35,18 @@ const GameState = {
         targetPos: 0,
         progress: 0, // 0-1 for interpolation within a step
         bounceHeight: 0
+    },
+    // Zoom state
+    zoom: {
+        level: 1,
+        minLevel: 0.5,
+        maxLevel: 3,
+        step: 0.25,
+        panX: 0,
+        panY: 0,
+        isPanning: false,
+        lastMouseX: 0,
+        lastMouseY: 0
     }
 };
 
@@ -1958,13 +1970,6 @@ function renderBoard() {
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
 
-    // Set canvas to fill container (accounting for device pixel ratio for sharpness)
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = containerWidth * dpr;
-    canvas.height = containerHeight * dpr;
-    canvas.style.width = containerWidth + 'px';
-    canvas.style.height = containerHeight + 'px';
-
     // Calculate logical board dimensions
     const baseSpaceSize = 60;
     const basePadding = 20;
@@ -1972,16 +1977,40 @@ function renderBoard() {
     const logicalBoardWidth = sideLength * baseSpaceSize + basePadding * 2;
     const logicalBoardHeight = sideLength * baseSpaceSize + basePadding * 2;
 
-    // Calculate scale to fit board in container while maintaining aspect ratio
+    // Calculate base scale to fit board in container while maintaining aspect ratio
     const scaleX = containerWidth / logicalBoardWidth;
     const scaleY = containerHeight / logicalBoardHeight;
-    const scale = Math.min(scaleX, scaleY);
+    const baseScale = Math.min(scaleX, scaleY);
+
+    // Apply zoom level
+    const zoomLevel = GameState.zoom.level;
+    const scale = baseScale * zoomLevel;
+
+    // Set canvas dimensions based on zoom
+    const dpr = window.devicePixelRatio || 1;
+    const canvasWidth = Math.max(containerWidth, logicalBoardWidth * scale);
+    const canvasHeight = Math.max(containerHeight, logicalBoardHeight * scale);
+
+    canvas.width = canvasWidth * dpr;
+    canvas.height = canvasHeight * dpr;
+    canvas.style.width = canvasWidth + 'px';
+    canvas.style.height = canvasHeight + 'px';
+
+    // Update container class for scroll behavior
+    if (zoomLevel > 1) {
+        container.classList.add('zoomed');
+        canvas.classList.add('zoomed');
+    } else {
+        container.classList.remove('zoomed');
+        canvas.classList.remove('zoomed');
+    }
 
     // Apply scaling (including device pixel ratio)
     ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
 
     // Store scale for hover detection
     GameState.boardScale = scale;
+    GameState.boardBaseScale = baseScale;
 
     // Use logical dimensions for drawing
     const spaceSize = baseSpaceSize;
@@ -3591,9 +3620,125 @@ function startGame() {
     log(`${GameState.players.length} researchers compete for scientific glory.`);
 }
 
+// ============================================
+// ZOOM CONTROLS
+// ============================================
+
+function updateZoomLevel(newLevel) {
+    const zoom = GameState.zoom;
+    zoom.level = Math.max(zoom.minLevel, Math.min(zoom.maxLevel, newLevel));
+
+    // Update UI
+    const zoomLevelEl = document.getElementById('zoom-level');
+    if (zoomLevelEl) {
+        zoomLevelEl.textContent = Math.round(zoom.level * 100) + '%';
+    }
+
+    // Re-render the board
+    if (GameState.board && GameState.board.length > 0) {
+        renderBoard();
+    }
+}
+
+function zoomIn() {
+    updateZoomLevel(GameState.zoom.level + GameState.zoom.step);
+}
+
+function zoomOut() {
+    updateZoomLevel(GameState.zoom.level - GameState.zoom.step);
+}
+
+function zoomReset() {
+    updateZoomLevel(1);
+    // Reset scroll position
+    const container = document.getElementById('board-container');
+    if (container) {
+        container.scrollLeft = 0;
+        container.scrollTop = 0;
+    }
+}
+
+function initZoomControls() {
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    const zoomResetBtn = document.getElementById('zoom-reset-btn');
+    const canvas = document.getElementById('game-board');
+    const container = document.getElementById('board-container');
+
+    if (zoomInBtn) zoomInBtn.addEventListener('click', zoomIn);
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', zoomOut);
+    if (zoomResetBtn) zoomResetBtn.addEventListener('click', zoomReset);
+
+    // Mouse wheel zoom
+    if (container) {
+        container.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                    zoomIn();
+                } else {
+                    zoomOut();
+                }
+            }
+        }, { passive: false });
+    }
+
+    // Pan with mouse drag when zoomed
+    if (canvas) {
+        canvas.addEventListener('mousedown', (e) => {
+            if (GameState.zoom.level > 1) {
+                GameState.zoom.isPanning = true;
+                GameState.zoom.lastMouseX = e.clientX;
+                GameState.zoom.lastMouseY = e.clientY;
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (GameState.zoom.isPanning && container) {
+                const deltaX = e.clientX - GameState.zoom.lastMouseX;
+                const deltaY = e.clientY - GameState.zoom.lastMouseY;
+
+                container.scrollLeft -= deltaX;
+                container.scrollTop -= deltaY;
+
+                GameState.zoom.lastMouseX = e.clientX;
+                GameState.zoom.lastMouseY = e.clientY;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (GameState.zoom.isPanning) {
+                GameState.zoom.isPanning = false;
+                if (canvas) {
+                    canvas.style.cursor = GameState.zoom.level > 1 ? 'grab' : 'default';
+                }
+            }
+        });
+    }
+
+    // Keyboard shortcuts for zoom
+    document.addEventListener('keydown', (e) => {
+        // Only handle zoom shortcuts when not in an input field
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        if ((e.ctrlKey || e.metaKey) && e.key === '=') {
+            e.preventDefault();
+            zoomIn();
+        } else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+            e.preventDefault();
+            zoomOut();
+        } else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+            e.preventDefault();
+            zoomReset();
+        }
+    });
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     initSetupScreen();
+    initZoomControls();
     // Check LLM availability (async, non-blocking)
     checkLLMAvailability();
 });

@@ -974,11 +974,16 @@ select {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: auto;
     position: relative;
     box-shadow:
         inset 0 0 30px rgba(0,0,0,0.03),
         3px 3px 10px rgba(0,0,0,0.1);
+}
+
+#board-container.zoomed {
+    align-items: flex-start;
+    justify-content: flex-start;
 }
 
 /* Center binding shadow effect */
@@ -1002,6 +1007,72 @@ select {
 #game-board {
     width: 100%;
     height: 100%;
+    cursor: grab;
+}
+
+#game-board:active {
+    cursor: grabbing;
+}
+
+#game-board.zoomed {
+    width: auto;
+    height: auto;
+}
+
+/* Zoom Controls */
+#zoom-controls {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245, 237, 216, 0.95);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 2px solid var(--paper-shadow);
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    z-index: 10;
+    font-family: var(--font-pixel);
+}
+
+.zoom-btn {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--ink-dark);
+    border-radius: 4px;
+    background: var(--paper-white);
+    color: var(--ink-dark);
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    box-shadow: 2px 2px 0 var(--paper-shadow);
+}
+
+.zoom-btn:hover {
+    background: var(--sticky-yellow);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--paper-shadow);
+}
+
+.zoom-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--paper-shadow);
+}
+
+#zoom-level {
+    font-size: 8px;
+    color: var(--ink-dark);
+    min-width: 40px;
+    text-align: center;
+}
+
+#zoom-reset-btn {
+    font-size: 14px;
 }
 
 /* ============================================
