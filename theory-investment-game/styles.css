@@ -966,6 +966,15 @@ select {
    BOARD CONTAINER - NOTEBOOK SPREAD
    ============================================ */
 
+/* Board wrapper - contains scrollable board and fixed zoom controls */
+#board-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+}
+
 #board-container {
     flex: 1;
     background: var(--paper-white);
