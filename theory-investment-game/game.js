@@ -55,6 +55,54 @@ const ANIMATION_STEP_DURATION = 200; // ms per space
 const ANIMATION_BOUNCE_HEIGHT = 15; // pixels
 
 // ============================================
+// RANDOM SCIENTIST NAMES
+// ============================================
+const SCIENTIST_NAMES = [
+    // Classic academic titles
+    "Dr. Hypothesis", "Prof. Theory", "Doc. Evidence", "Dr. Empiricus",
+    "Prof. Correlation", "Dr. Causation", "Doc. Variable", "Prof. Constant",
+    // Funny names
+    "Dr. Overthink", "Prof. Procrastinus", "Dr. Coffee McBreak", "Doc. Footnote",
+    "Prof. Actually", "Dr. Well-Actually", "Doc. Citation Needed", "Prof. P-Value",
+    "Dr. Significant", "Prof. Outlier", "Doc. Standard Deviation", "Dr. Mean",
+    // Pompous names
+    "Sir Reginald Hypothesis III", "Dame Theorica von Data", "Baron von Experiment",
+    "Countess Correlation", "Duke of Peer Review", "Marquis de Methodology",
+    // Absurd names
+    "Dr. Definitely Maybe", "Prof. Trust Me Bro", "Doc. Source: Vibes",
+    "Dr. Probably Fine", "Prof. Close Enough", "Doc. Roughly Speaking",
+    "Dr. According to My Calculations", "Prof. In Theory", "Doc. On Paper",
+    // Self-aware names
+    "Dr. Imposter Syndrome", "Prof. Dunning-Kruger", "Doc. Confirmation Bias",
+    "Dr. Hindsight", "Prof. Overthinking It", "Doc. Second Guess",
+    // Food-themed
+    "Dr. Earl Grey", "Prof. Espresso", "Doc. Sandwich Break",
+    "Dr. Leftover Pizza", "Prof. Vending Machine", "Doc. Deadline Snacks"
+];
+
+// Track used names to avoid duplicates in the same game
+let usedNames = new Set();
+
+function getRandomScientistName() {
+    // Filter out already used names
+    const availableNames = SCIENTIST_NAMES.filter(name => !usedNames.has(name));
+
+    // If all names used, reset the pool
+    if (availableNames.length === 0) {
+        usedNames.clear();
+        return SCIENTIST_NAMES[Math.floor(Math.random() * SCIENTIST_NAMES.length)];
+    }
+
+    const name = availableNames[Math.floor(Math.random() * availableNames.length)];
+    usedNames.add(name);
+    return name;
+}
+
+function resetUsedNames() {
+    usedNames.clear();
+}
+
+// ============================================
 // SOUND SYSTEM
 // ============================================
 let audioContext = null;
@@ -3491,6 +3539,34 @@ function initBoardTooltip() {
 // ============================================
 // SETUP AND INITIALIZATION
 // ============================================
+
+// Helper to create player input HTML
+function createPlayerInputHTML(playerNum, name, color, isAI = false) {
+    return `
+        <input type="text" class="player-name" placeholder="Player ${playerNum} Name" value="${name}">
+        <button type="button" class="randomize-name-btn" title="Random Name">🎲</button>
+        <input type="color" class="player-color" value="${color}">
+        <label class="ai-toggle"><input type="checkbox" class="player-ai"${isAI ? ' checked' : ''}> AI</label>
+    `;
+}
+
+// Handle randomize button clicks (using event delegation)
+function setupRandomizeButtons(container) {
+    container.addEventListener('click', (e) => {
+        if (e.target.classList.contains('randomize-name-btn')) {
+            const playerInput = e.target.closest('.player-input');
+            const nameInput = playerInput.querySelector('.player-name');
+            const oldName = nameInput.value;
+
+            // Remove old name from used set so it can be reused
+            usedNames.delete(oldName);
+
+            // Get new random name
+            nameInput.value = getRandomScientistName();
+        }
+    });
+}
+
 function initSetupScreen() {
     const addBtn = document.getElementById('add-player-btn');
     const removeBtn = document.getElementById('remove-player-btn');
@@ -3499,26 +3575,43 @@ function initSetupScreen() {
     const customMapInput = document.getElementById('custom-map-input');
     const startBtn = document.getElementById('start-game-btn');
 
+    // Reset used names and randomize initial player names
+    resetUsedNames();
+    const initialColors = ['#e74c3c', '#3498db'];
+    const initialAI = [false, true];
+
+    // Update initial player inputs with random names and randomize buttons
+    const existingInputs = playerInputs.querySelectorAll('.player-input');
+    existingInputs.forEach((input, index) => {
+        const randomName = getRandomScientistName();
+        input.innerHTML = createPlayerInputHTML(index + 1, randomName, initialColors[index], initialAI[index]);
+    });
+
+    // Setup event delegation for randomize buttons
+    setupRandomizeButtons(playerInputs);
+
     addBtn.addEventListener('click', () => {
         const count = playerInputs.children.length;
         if (count < 4) {
-            const colors = ['#a86060', '#6a9a98', '#c8b070', '#7a6080'];
-            const names = ['Dr. Hypothesis', 'Prof. Theory', 'Doc. Evidence', 'Res. Empiricus'];
+            const colors = ['#e74c3c', '#3498db', '#27ae60', '#9b59b6'];
+            const randomName = getRandomScientistName();
 
             const div = document.createElement('div');
             div.className = 'player-input';
-            div.innerHTML = `
-                <input type="text" class="player-name" placeholder="Player ${count + 1} Name" value="${names[count]}">
-                <input type="color" class="player-color" value="${colors[count]}">
-                <label class="ai-toggle"><input type="checkbox" class="player-ai"> AI</label>
-            `;
+            div.innerHTML = createPlayerInputHTML(count + 1, randomName, colors[count], false);
             playerInputs.appendChild(div);
         }
     });
 
     removeBtn.addEventListener('click', () => {
         if (playerInputs.children.length > 2) {
-            playerInputs.removeChild(playerInputs.lastChild);
+            // Remove the name from used set
+            const lastInput = playerInputs.lastChild;
+            const nameInput = lastInput.querySelector('.player-name');
+            if (nameInput) {
+                usedNames.delete(nameInput.value);
+            }
+            playerInputs.removeChild(lastInput);
         }
     });
 
