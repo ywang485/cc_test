@@ -58,9 +58,24 @@ const ANIMATION_BOUNCE_HEIGHT = 15; // pixels
 // RANDOM SCIENTIST NAMES
 // ============================================
 const SCIENTIST_NAMES = [
-    // Classic academic titles
-    "Dr. Hypothesis", "Prof. Theory", "Doc. Evidence", "Dr. Empiricus",
-    "Prof. Correlation", "Dr. Causation", "Doc. Variable", "Prof. Constant",
+    // Curated names
+    'Coffee-Fueled Procrastinator',
+    'Imposter Syndrome Incarnate',
+    'The Serial Conference Attender',
+    'Deadline Extensions McGee',
+    'Tenure-Track Anxiety',
+    'The Passive-Aggressive Peer Reviewer',
+    'Footnote Obsessive',
+    'Niche Topic Evangelist',
+    'Citation Hoarder',
+    'Adjunct Job Juggler',
+    'Office Hour Ghost',
+    'Publish or Perish Personified',
+    'Sabbatical Daydreamer',
+    'Panel Monopolizer',
+    'Free Wine Reception Hunter',
+    'Awkward Q&A Questioner',
+    'The Unreturned Email',
     // Funny names
     "Dr. Overthink", "Prof. Procrastinus", "Dr. Coffee McBreak", "Doc. Footnote",
     "Prof. Actually", "Dr. Well-Actually", "Doc. Citation Needed", "Prof. P-Value",
