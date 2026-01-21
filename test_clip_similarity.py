@@ -46,7 +46,7 @@ class TestCLIPSimilarityCalculator(unittest.TestCase):
             mock_processor.assert_called_once()
             self.assertIsNotNone(calculator.model)
             self.assertIsNotNone(calculator.processor)
-            self.assertIn(calculator.device, ['cuda', 'cpu'])
+            self.assertIn(calculator.device, ['cuda', 'mps', 'cpu'])
 
     def test_initialization_with_custom_model(self):
         """Test initialization with a custom model name."""

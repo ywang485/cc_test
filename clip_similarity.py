@@ -37,7 +37,15 @@ class CLIPSimilarityCalculator:
             model_name: HuggingFace model identifier for CLIP
         """
         logger.info(f"Loading CLIP model: {model_name}")
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        # Detect best available device (CUDA > MPS > CPU)
+        if torch.cuda.is_available():
+            self.device = "cuda"
+        elif torch.backends.mps.is_available():
+            self.device = "mps"
+        else:
+            self.device = "cpu"
+
         logger.info(f"Using device: {self.device}")
 
         self.model = CLIPModel.from_pretrained(model_name).to(self.device)

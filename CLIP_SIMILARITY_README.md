@@ -11,6 +11,7 @@ A Python script that uses OpenAI's CLIP (Contrastive Language-Image Pre-training
 - Outputs results back to CSV file
 - Comprehensive error handling and logging
 - Unit tests included
+- **Hardware acceleration support**: CUDA (NVIDIA GPUs), MPS (Apple Silicon), and CPU
 
 ## Installation
 
@@ -21,10 +22,26 @@ A Python script that uses OpenAI's CLIP (Contrastive Language-Image Pre-training
 pip install -r requirements.txt
 ```
 
-For GPU support, install PyTorch with CUDA:
+### Hardware Acceleration
+
+The script automatically detects and uses the best available device:
+
+**For NVIDIA GPUs (CUDA):**
 ```bash
 # Visit https://pytorch.org/get-started/locally/ for specific installation commands
 ```
+
+**For Apple Silicon Macs (M1/M2/M3 - MPS):**
+```bash
+# PyTorch with MPS support is included in PyTorch 2.0+
+# Simply install the requirements - MPS will be detected automatically
+pip install -r requirements.txt
+```
+
+**Note:** The script will automatically use:
+1. CUDA if available (NVIDIA GPUs)
+2. MPS if available (Apple Silicon Macs)
+3. CPU as fallback
 
 ## Usage
 
@@ -83,11 +100,17 @@ pytest test_clip_similarity.py -v
 
 ## How It Works
 
-1. **Model Loading**: Downloads and loads the CLIP model from HuggingFace
-2. **Image Download**: Downloads images from URLs in the CSV file
-3. **Preprocessing**: Converts images to RGB and prepares them for the model
-4. **Similarity Calculation**: Uses CLIP to encode both image and text, then calculates cosine similarity
-5. **Output**: Saves similarity scores (0-1 range) back to the CSV file
+1. **Device Detection**: Automatically detects the best available device (CUDA > MPS > CPU)
+2. **Model Loading**: Downloads and loads the CLIP model from HuggingFace
+3. **Image Download**: Downloads images from URLs in the CSV file
+4. **Preprocessing**: Converts images to RGB and prepares them for the model
+5. **Similarity Calculation**: Uses CLIP to encode both image and text, then calculates cosine similarity
+6. **Output**: Saves similarity scores (0-1 range) back to the CSV file
+
+When you run the script, you'll see a log message indicating which device is being used:
+```
+INFO - Using device: mps
+```
 
 ## Similarity Score Interpretation
 
@@ -136,9 +159,11 @@ If you encounter memory issues, try:
 - Running on a machine with more RAM
 
 ### Slow Processing
-- Use GPU if available (CUDA-enabled PyTorch)
-- Use a smaller model
+- Use GPU if available (CUDA for NVIDIA, MPS for Apple Silicon)
+- The script automatically detects and uses the best available device
+- Use a smaller model (e.g., `openai/clip-vit-base-patch32`)
 - Reduce image resolution (handled automatically by CLIP)
+- On Mac with Apple Silicon, ensure you're using PyTorch 2.0+ for MPS support
 
 ### Image Download Failures
 - Check internet connectivity
