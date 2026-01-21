@@ -1,0 +1,15 @@
+# Core dependencies for CLIP similarity calculator
+torch>=2.0.0
+transformers>=4.30.0
+Pillow>=9.0.0
+pandas>=1.5.0
+requests>=2.28.0
+
+# Optional: For GPU support
+# torch with CUDA support should be installed separately if needed
+# Visit: https://pytorch.org/get-started/locally/
+
+# Testing dependencies
+# (install with: pip install -r requirements.txt[test])
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
